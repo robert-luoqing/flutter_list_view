@@ -1,4 +1,4 @@
-import 'package:example/chat_list/chat_list.dart';
+import './chat_list.dart';
 import 'package:flutter/material.dart';
 import 'chat_list_delegate.dart';
 import '../sliver/sliver_flexible_header.dart';
