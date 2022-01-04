@@ -1,4 +1,4 @@
-import 'package:example/chat_list/chat_list_delegate.dart';
+import 'chat_list_delegate.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';

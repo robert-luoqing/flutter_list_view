@@ -1,4 +1,4 @@
-# marquee_vertical_sample
+# chat_list_sample
 
 A new Flutter project.
 

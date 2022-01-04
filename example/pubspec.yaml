@@ -1,4 +1,4 @@
-name: marquee_vertical_example
+name: chat_list_example
 description: A new Flutter project.
 
 # The following line prevents the package from being accidentally published to
@@ -35,7 +35,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   scrollable_positioned_list: ^0.2.3
-  marquee_vertical:
+  chat_list:
     path: ../
 
 dev_dependencies:

@@ -1,6 +1,6 @@
 {
-    "name": "marquee_vertical_sample",
-    "short_name": "marquee_vertical_sample",
+    "name": "chat_list_sample",
+    "short_name": "chat_list_sample",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
