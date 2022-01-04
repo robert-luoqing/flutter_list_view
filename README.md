@@ -11,7 +11,7 @@ I don't like official list view. There are some features don't provide and jumpT
 3. Support show top in reverse model if the data can't fill full viewport.
 4. Performance
    When listview jump to somewhere, The items which layout before the position will always loaded. It is not realy lazy loading.
-
+5.
 
 ## Screen
 
