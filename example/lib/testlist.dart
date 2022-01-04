@@ -10,6 +10,9 @@ class TestListPage extends StatefulWidget {
 
 class _TestListPageState extends State<TestListPage> {
   ScrollController scrollController = ScrollController();
+  FlutterListViewController flutterListViewController =
+      FlutterListViewController();
+  TextEditingController textController = TextEditingController(text: "");
   bool closeList = false;
   List<int> data = [];
   bool keepPosition = false;
@@ -17,10 +20,16 @@ class _TestListPageState extends State<TestListPage> {
   FirstItemAlign firstItemAlign = FirstItemAlign.start;
   @override
   initState() {
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < 1000; i++) {
       data.add(i);
     }
     super.initState();
+  }
+
+  @override
+  dispose() {
+    textController.dispose();
+    super.dispose();
   }
 
   Widget buildSliverList(int itemCount) {
@@ -55,16 +64,15 @@ class _TestListPageState extends State<TestListPage> {
           child: Column(
             children: [
               Wrap(spacing: 20, children: [
+                TextField(controller: textController),
                 ElevatedButton(
                     onPressed: () {
-                      scrollController.jumpTo(0);
+                      flutterListViewController.jumpToIndex(
+                          int.parse(textController.text),
+                          offset: 100,
+                          offsetBasedOnBottom: true);
                     },
-                    child: const Text("Scroll to 0")),
-                ElevatedButton(
-                    onPressed: () {
-                      scrollController.jumpTo(10000);
-                    },
-                    child: const Text("Scroll to ...")),
+                    child: const Text("Jump")),
                 ElevatedButton(
                     onPressed: () {
                       setState(() {
@@ -125,16 +133,19 @@ class _TestListPageState extends State<TestListPage> {
                   slivers: [
                     // buildSliverList(15),
                     FlutterListView(
+                        controller: flutterListViewController,
                         delegate: FlutterListViewDelegate(
-                            (BuildContext context, int index) => Container(
-                                  alignment: Alignment.centerLeft,
-                                  // color: Colors.lightBlue[100 * (index % 9)],
-                                  color: Colors.blue,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text('List Item ${data[index]}'),
-                                  ),
-                                ),
+                            (BuildContext context, int index) {
+                          return Container(
+                            alignment: Alignment.centerLeft,
+                            // color: Colors.lightBlue[100 * (index % 9)],
+                            color: Colors.blue,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text('List Item ${data[index]}'),
+                            ),
+                          );
+                        },
                             childCount: data.length,
                             onItemKey: (index) => data[index].toString(),
                             keepPosition: keepPosition,

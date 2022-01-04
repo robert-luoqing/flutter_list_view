@@ -57,7 +57,7 @@ class FlutterListViewRender extends RenderSliver
   }
 
   /// The field will indicate next layout will not remove out of scope elements
-  bool _isAdjustByKeepPosition = false;
+  bool _isAdjustOperation = false;
 
   @override
   void performLayout() {
@@ -88,11 +88,26 @@ class FlutterListViewRender extends RenderSliver
         childManager.removeAllChildren();
       });
 
-      if (_handleKeepPositionInLayout(viewportHeight, childConstraints)) return;
+      if (childManager.indexShoudBeJumpTo != null) {
+        final jumpIndex = childManager.indexShoudBeJumpTo!;
+        final jumpOffset = childManager.indexShoudBeJumpOffset;
+        final offsetBasedOnBottom = childManager.offsetBasedOnBottom;
+        childManager.indexShoudBeJumpTo = null;
+        childManager.indexShoudBeJumpOffset = 0.0;
+        childManager.offsetBasedOnBottom = false;
+        if (_handleJump(jumpIndex, jumpOffset, offsetBasedOnBottom,
+            viewportHeight, childConstraints)) {
+          return;
+        }
+      } else {
+        if (_handleKeepPositionInLayout(viewportHeight, childConstraints)) {
+          return;
+        }
+      }
     }
 
     List<Element> cachedElements = [];
-    if (_isAdjustByKeepPosition == false) {
+    if (_isAdjustOperation == false) {
       cachedElements =
           childManager.removeOutOfScopeElements(scrollOffset, viewportHeight);
     }
@@ -140,7 +155,7 @@ class FlutterListViewRender extends RenderSliver
       });
     }
 
-    if (_isAdjustByKeepPosition) {
+    if (_isAdjustOperation) {
       var maxRemainArea = childManager.totalItemHeight - viewportHeight;
       if (childManager.totalItemHeight <= viewportHeight &&
           constraints.scrollOffset > 0) {
@@ -173,7 +188,46 @@ class FlutterListViewRender extends RenderSliver
     // print(
     //     "------------------------------->${constraints.scrollOffset}, $compensationScroll");
     _determineStickyElement(childConstraints);
-    _isAdjustByKeepPosition = false;
+    _isAdjustOperation = false;
+  }
+
+  bool _handleJump(
+      int jumpIndex,
+      double indexShoudBeJumpOffset,
+      bool offsetBasedOnBottom,
+      double viewportHeight,
+      Constraints childConstraints) {
+    var itemDy = childManager.getScrollOffsetByIndex(jumpIndex);
+
+    late FlutterListViewRenderData chatElem;
+    invokeLayoutCallback((constraints) {
+      chatElem = childManager.constructOneIndexElement(jumpIndex, itemDy, []);
+    });
+    RenderBox child = chatElem.element.renderObject! as RenderBox;
+    child.layout(childConstraints, parentUsesSize: true);
+    var itemHeight = child.size.height;
+    childManager.updateElementPosition(
+        spEle: chatElem,
+        height: itemHeight,
+        needUpdateNextElementOffset: false);
+
+    var scrollDy = itemDy - indexShoudBeJumpOffset;
+    if (offsetBasedOnBottom) {
+      scrollDy =
+          itemDy - (viewportHeight - (indexShoudBeJumpOffset + itemHeight));
+    }
+    if (scrollDy < 0) scrollDy = 0;
+
+    if (constraints.scrollOffset != scrollDy) {
+      _isAdjustOperation = true;
+      geometry = SliverGeometry(
+          scrollExtent: childManager.totalItemHeight,
+          hasVisualOverflow: true,
+          scrollOffsetCorrection: scrollDy - constraints.scrollOffset);
+      return true;
+    }
+
+    return false;
   }
 
   bool _handleKeepPositionInLayout(
@@ -209,7 +263,7 @@ class FlutterListViewRender extends RenderSliver
               height: itemHeight,
               needUpdateNextElementOffset: false);
 
-          _isAdjustByKeepPosition = true;
+          _isAdjustOperation = true;
           geometry = SliverGeometry(
               scrollExtent: childManager.totalItemHeight,
               hasVisualOverflow: true,

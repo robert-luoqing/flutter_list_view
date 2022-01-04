@@ -7,11 +7,20 @@ import 'flutter_list_view.dart';
 import 'flutter_list_view_render_data.dart';
 
 class FlutterListViewElement extends RenderObjectElement {
-  FlutterListViewElement(SliverWithKeepAliveWidget widget) : super(widget);
+  FlutterListViewElement(FlutterListView widget) : super(widget) {
+    if (widget.controller != null) {
+      widget.controller!.attach(this);
+    }
+  }
 
   /// If the field is true, then next layout will remove all chilrend first
   /// Then create new children according to scrolloffset
   bool markAsInvalid = true;
+
+  /// [indexShoudBeJumpTo] is mean not jump to
+  int? indexShoudBeJumpTo;
+  double indexShoudBeJumpOffset = 0.0;
+  bool offsetBasedOnBottom = false;
 
   @override
   FlutterListView get widget => super.widget as FlutterListView;
@@ -20,6 +29,15 @@ class FlutterListViewElement extends RenderObjectElement {
   void update(covariant FlutterListView newWidget) {
     final FlutterListView oldWidget = widget;
     super.update(newWidget);
+    if (oldWidget.controller != newWidget.controller) {
+      if (oldWidget.controller != null) {
+        oldWidget.controller!.detach();
+      }
+      if (newWidget.controller != null) {
+        newWidget.controller!.attach(this);
+      }
+    }
+
     final SliverChildDelegate newDelegate = newWidget.delegate;
     final SliverChildDelegate oldDelegate = oldWidget.delegate;
     if (newDelegate != oldDelegate &&
@@ -46,6 +64,16 @@ class FlutterListViewElement extends RenderObjectElement {
   double _totalItemHeight = 0;
 
   double get totalItemHeight => _totalItemHeight;
+
+  void jumpToIndex(int index, double offset, bool basedOnBottom) {
+    assert(index >= 0 && index < childCount,
+        "Index should be >=0 and  <= child count");
+    indexShoudBeJumpTo = index;
+    indexShoudBeJumpOffset = offset;
+    offsetBasedOnBottom = basedOnBottom;
+    markAsInvalid = true;
+    renderObject.markNeedsLayout();
+  }
 
   FirstItemAlign get firstItemAlign {
     if (widget.delegate is FlutterListViewDelegate) {
@@ -487,5 +515,13 @@ class FlutterListViewElement extends RenderObjectElement {
       }
       stickyElement = null;
     }
+  }
+
+  @override
+  void unmount() {
+    if (widget.controller != null) {
+      widget.controller!.detach();
+    }
+    super.unmount();
   }
 }
