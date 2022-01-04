@@ -21,27 +21,24 @@ CustomScrollView(
   slivers: [
     FlutterListView(
         controller: flutterListViewController,
-        delegate: FlutterListViewDelegate(
-            (BuildContext context, int index) {
-          return Container(
-            alignment: Alignment.centerLeft,
-            // color: Colors.lightBlue[100 * (index % 9)],
-            color: Colors.blue,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text('List Item ${data[index]}'),
+          delegate: FlutterListViewDelegate(
+            (BuildContext context, int index) => Container(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('List Item ${data[index]}'),
+              ),
             ),
-          );
-        },
-        childCount: data.length,
-        onItemKey: (index) => data[index].toString(),
-        keepPosition: keepPosition,
-        keepPositionOffset: 80,
-        firstItemAlign: firstItemAlign)),
+            childCount: data.length,
+          )),
   ],
 ),
 ```
 ### Jump to index
+```dart
+flutterListViewController.jumpToIndex(100);
+```
+OR
 ```dart
 /// Declare
 FlutterListViewController flutterListViewController = FlutterListViewController();
@@ -51,7 +48,26 @@ flutterListViewController.jumpToIndex(
                           offset: 100,
                           offsetBasedOnBottom: true);
 ```
-Or
+
+### Keep Position
 ```dart
-flutterListViewController.jumpToIndex(100);
-```                          
+CustomScrollView(
+  reverse: reverse,
+  slivers: [
+    FlutterListView(
+        controller: flutterListViewController,
+        delegate: FlutterListViewDelegate(
+          (BuildContext context, int index) => Container(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text('List Item ${data[index]}'),
+            ),
+          ),
+          childCount: data.length,
+          onItemKey: (index) => data[index].toString(),
+          keepPosition: true,
+          keepPositionOffset: 80)),
+  ],
+),
+```
