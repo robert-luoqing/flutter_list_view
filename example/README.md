@@ -1,4 +1,4 @@
-# chat_list_sample
+# flutter_list_view_sample
 
 A new Flutter project.
 

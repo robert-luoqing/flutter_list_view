@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
-class ChatListGrowDirectionInfo {
-  ChatListGrowDirectionInfo(
+class FlutterListViewGrowDirectionInfo {
+  FlutterListViewGrowDirectionInfo(
       {required this.mainAxisUnit,
       required this.crossAxisUnit,
       required this.originOffset,

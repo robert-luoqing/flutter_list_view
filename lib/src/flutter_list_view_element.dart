@@ -1,24 +1,24 @@
-import 'chat_list_delegate.dart';
+import 'flutter_list_view_delegate.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import 'chat_list.dart';
-import 'chat_list_render_data.dart';
+import 'flutter_list_view.dart';
+import 'flutter_list_view_render_data.dart';
 
-class ChatListElement extends RenderObjectElement {
-  ChatListElement(SliverWithKeepAliveWidget widget) : super(widget);
+class FlutterListViewElement extends RenderObjectElement {
+  FlutterListViewElement(SliverWithKeepAliveWidget widget) : super(widget);
 
   /// If the field is true, then next layout will remove all chilrend first
   /// Then create new children according to scrolloffset
   bool markAsInvalid = true;
 
   @override
-  ChatList get widget => super.widget as ChatList;
+  FlutterListView get widget => super.widget as FlutterListView;
 
   @override
-  void update(covariant ChatList newWidget) {
-    final ChatList oldWidget = widget;
+  void update(covariant FlutterListView newWidget) {
+    final FlutterListView oldWidget = widget;
     super.update(newWidget);
     final SliverChildDelegate newDelegate = newWidget.delegate;
     final SliverChildDelegate oldDelegate = oldWidget.delegate;
@@ -32,12 +32,12 @@ class ChatListElement extends RenderObjectElement {
   /// Rendered child element, The elements which only fill one view port
   /// The elements will be reusable
   /// The order of list it the item sequence shows in UI
-  final List<ChatListRenderData> _renderedElements = [];
+  final List<FlutterListViewRenderData> _renderedElements = [];
 
   /// Current sticky element which show on top of list
-  ChatListRenderData? stickyElement;
+  FlutterListViewRenderData? stickyElement;
 
-  List<ChatListRenderData> get renderedElements => _renderedElements;
+  List<FlutterListViewRenderData> get renderedElements => _renderedElements;
 
   /// It will store the height of item which has rendered or provide by feedback
   final Map<String, double> _itemHeights = {};
@@ -48,24 +48,24 @@ class ChatListElement extends RenderObjectElement {
   double get totalItemHeight => _totalItemHeight;
 
   FirstItemAlign get firstItemAlign {
-    if (widget.delegate is ChatListDelegate) {
-      var chatListDelegate = widget.delegate as ChatListDelegate;
+    if (widget.delegate is FlutterListViewDelegate) {
+      var chatListDelegate = widget.delegate as FlutterListViewDelegate;
       return chatListDelegate.firstItemAlign;
     }
     return FirstItemAlign.start;
   }
 
   bool get keepPosition {
-    if (widget.delegate is ChatListDelegate) {
-      var chatListDelegate = widget.delegate as ChatListDelegate;
+    if (widget.delegate is FlutterListViewDelegate) {
+      var chatListDelegate = widget.delegate as FlutterListViewDelegate;
       return chatListDelegate.keepPosition;
     }
     return false;
   }
 
   double get keepPositionOffset {
-    if (widget.delegate is ChatListDelegate) {
-      var chatListDelegate = widget.delegate as ChatListDelegate;
+    if (widget.delegate is FlutterListViewDelegate) {
+      var chatListDelegate = widget.delegate as FlutterListViewDelegate;
       return chatListDelegate.keepPositionOffset;
     }
     return 0;
@@ -77,8 +77,8 @@ class ChatListElement extends RenderObjectElement {
     if (_itemHeights.containsKey(key)) {
       return _itemHeights[key]!;
     } else {
-      if (widget.delegate is ChatListDelegate) {
-        var chatListDelegate = widget.delegate as ChatListDelegate;
+      if (widget.delegate is FlutterListViewDelegate) {
+        var chatListDelegate = widget.delegate as FlutterListViewDelegate;
         if (chatListDelegate.onItemHeight != null) {
           return chatListDelegate.onItemHeight!(index);
         } else {
@@ -90,8 +90,8 @@ class ChatListElement extends RenderObjectElement {
   }
 
   bool queryIsStickyItemByIndex(int index) {
-    if (widget.delegate is ChatListDelegate) {
-      var chatListDelegate = widget.delegate as ChatListDelegate;
+    if (widget.delegate is FlutterListViewDelegate) {
+      var chatListDelegate = widget.delegate as FlutterListViewDelegate;
       if (chatListDelegate.onItemSticky != null) {
         return chatListDelegate.onItemSticky!(index);
       }
@@ -105,8 +105,8 @@ class ChatListElement extends RenderObjectElement {
   }
 
   String getKeyByItemIndex(int index) {
-    if (widget.delegate is ChatListDelegate) {
-      var chatListDelegate = widget.delegate as ChatListDelegate;
+    if (widget.delegate is FlutterListViewDelegate) {
+      var chatListDelegate = widget.delegate as FlutterListViewDelegate;
       if (chatListDelegate.onItemKey != null) {
         return chatListDelegate.onItemKey!(index);
       }
@@ -179,7 +179,7 @@ class ChatListElement extends RenderObjectElement {
     return removedElements;
   }
 
-  ChatListRenderData constructOneIndexElement(
+  FlutterListViewRenderData constructOneIndexElement(
     int index,
     double itemOffset,
     List<Element> cachedElements,
@@ -191,7 +191,7 @@ class ChatListElement extends RenderObjectElement {
     return result;
   }
 
-  ChatListRenderData? constructPrevElement(
+  FlutterListViewRenderData? constructPrevElement(
     double scrollOffset,
     double viewportHeight,
     List<Element> cachedElements,
@@ -201,7 +201,7 @@ class ChatListElement extends RenderObjectElement {
     if (startOffset < 0) {
       startOffset = 0;
     }
-    ChatListRenderData? result;
+    FlutterListViewRenderData? result;
 
     /// 构造上面的element
     if (_renderedElements.isNotEmpty) {
@@ -218,7 +218,7 @@ class ChatListElement extends RenderObjectElement {
 
   /// 返回新的与旧的差别
   double updateElementPosition(
-      {required ChatListRenderData spEle,
+      {required FlutterListViewRenderData spEle,
       required double height,
       required bool needUpdateNextElementOffset}) {
     var oldHeight = spEle.height;
@@ -245,7 +245,8 @@ class ChatListElement extends RenderObjectElement {
     return diff;
   }
 
-  ChatListRenderData _createOrReuseElement(List<Element> cacheds, int index) {
+  FlutterListViewRenderData _createOrReuseElement(
+      List<Element> cacheds, int index) {
     Element? newElement;
     if (cacheds.isNotEmpty) {
       newElement = cacheds[0];
@@ -257,7 +258,7 @@ class ChatListElement extends RenderObjectElement {
     var itemKey = getKeyByItemIndex(index);
     var height = getItemHeight(itemKey, index);
     var isSticky = queryIsStickyItemByIndex(index);
-    var result = ChatListRenderData(
+    var result = FlutterListViewRenderData(
         element: newElement!,
         index: index,
         offset: 0,
@@ -278,7 +279,7 @@ class ChatListElement extends RenderObjectElement {
     return newChild;
   }
 
-  ChatListRenderData? constructNextElement(
+  FlutterListViewRenderData? constructNextElement(
     double scrollOffset,
     double viewportHeight,
     List<Element> cachedElements,
@@ -286,7 +287,7 @@ class ChatListElement extends RenderObjectElement {
     double cacheExtent = viewportHeight;
     double endOffset = scrollOffset + cacheExtent;
 
-    ChatListRenderData? result;
+    FlutterListViewRenderData? result;
 
     /// 构造下面的element
     if (_renderedElements.isNotEmpty) {

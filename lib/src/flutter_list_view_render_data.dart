@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
-class ChatListRenderData {
-  ChatListRenderData({
+class FlutterListViewRenderData {
+  FlutterListViewRenderData({
     required this.index,
     required this.element,
     required this.offset,

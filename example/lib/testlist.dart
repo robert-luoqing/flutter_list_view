@@ -1,4 +1,4 @@
-import 'package:chat_list/chat_list.dart';
+import 'package:flutter_list_view/flutter_list_view.dart';
 import 'package:flutter/material.dart';
 
 class TestListPage extends StatefulWidget {
@@ -124,8 +124,8 @@ class _TestListPageState extends State<TestListPage> {
                   reverse: reverse,
                   slivers: [
                     // buildSliverList(15),
-                    ChatList(
-                        delegate: ChatListDelegate(
+                    FlutterListView(
+                        delegate: FlutterListViewDelegate(
                             (BuildContext context, int index) => Container(
                                   alignment: Alignment.centerLeft,
                                   // color: Colors.lightBlue[100 * (index % 9)],

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-typedef ChatListDelegateOnItemKey = String Function(int index);
-typedef ChatListDelegateOnItemSticky = bool Function(int index);
-typedef ChatListDelegateOnItemHeight = double Function(int index);
+typedef FlutterListViewDelegateOnItemKey = String Function(int index);
+typedef FlutterListViewDelegateOnItemSticky = bool Function(int index);
+typedef FlutterListViewDelegateOnItemHeight = double Function(int index);
 
 enum FirstItemAlign { start, end }
 
-class ChatListDelegate extends SliverChildDelegate {
+class FlutterListViewDelegate extends SliverChildDelegate {
   /// Creates a delegate that supplies children for slivers using the given
   /// builder callback.
   ///
@@ -18,7 +18,7 @@ class ChatListDelegate extends SliverChildDelegate {
   /// providing a [findChildIndexCallback]. This allows the delegate to find the
   /// new index for a child that was previously located at a different index to
   /// attach the existing state to the [Widget] at its new location.
-  const ChatListDelegate(this.builder,
+  const FlutterListViewDelegate(this.builder,
       {this.childCount,
       this.addAutomaticKeepAlives = true,
       this.addRepaintBoundaries = true,
@@ -43,7 +43,7 @@ class ChatListDelegate extends SliverChildDelegate {
   /// The key will used to ref the item's height
   /// If you enable keepPosition, the key will be used to identify inserted items
   /// which is before the current rendered key
-  final ChatListDelegateOnItemKey? onItemKey;
+  final FlutterListViewDelegateOnItemKey? onItemKey;
 
   /// Whem keepPosition is false, If some item insert to header, the render items will scroll down a distance
   /// which is equal the inserted items' height, When the property set to true, The current render item will
@@ -54,11 +54,11 @@ class ChatListDelegate extends SliverChildDelegate {
   final double keepPositionOffset;
 
   /// Query the item is sticky to header.
-  final ChatListDelegateOnItemSticky? onItemSticky;
+  final FlutterListViewDelegateOnItemSticky? onItemSticky;
 
   /// If you know the item height, it is better provider the height
   /// It can provide better user expierence
-  final ChatListDelegateOnItemHeight? onItemHeight;
+  final FlutterListViewDelegateOnItemHeight? onItemHeight;
 
   /// If you didn't provide onItemHeight, the preferItemHeight will be apply to item which is not render.
   final double preferItemHeight;
@@ -172,7 +172,7 @@ class ChatListDelegate extends SliverChildDelegate {
   int? get estimatedChildCount => childCount;
 
   @override
-  bool shouldRebuild(covariant ChatListDelegate oldDelegate) => true;
+  bool shouldRebuild(covariant FlutterListViewDelegate oldDelegate) => true;
 }
 
 class _SaltedValueKey extends ValueKey<Key> {

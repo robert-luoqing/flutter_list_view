@@ -5,12 +5,12 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "chat_list",
+      "name": "flutter_list_view",
       "request": "launch",
       "type": "dart"
     },
     {
-      "name": "chat_list (profile mode)",
+      "name": "flutter_list_view (profile mode)",
       "request": "launch",
       "type": "dart",
       "flutterMode": "profile"

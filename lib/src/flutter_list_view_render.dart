@@ -1,21 +1,22 @@
-import 'package:chat_list/src/chat_list_delegate.dart';
+import 'flutter_list_view_delegate.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'chat_list_element.dart';
-import 'chat_list_model.dart';
-import 'chat_list_render_data.dart';
+import 'flutter_list_view_element.dart';
+import 'flutter_list_view_model.dart';
+import 'flutter_list_view_render_data.dart';
 
-class ChatListRender extends RenderSliver with RenderSliverWithKeepAliveMixin {
-  ChatListRender({
+class FlutterListViewRender extends RenderSliver
+    with RenderSliverWithKeepAliveMixin {
+  FlutterListViewRender({
     required this.childManager,
   });
 
-  final ChatListElement childManager;
+  final FlutterListViewElement childManager;
 
   /// Remember the first paint item in viewport
   /// We will use the data to keep position if some items
   /// insert before the item
-  ChatListRenderData? _firstPainItemInViewport;
+  FlutterListViewRenderData? _firstPainItemInViewport;
   Offset? _firstPainItemOffset;
 
   @override
@@ -101,7 +102,7 @@ class ChatListRender extends RenderSliver with RenderSliverWithKeepAliveMixin {
     double compensationScroll = 0;
 
     while (true) {
-      ChatListRenderData? spElement;
+      FlutterListViewRenderData? spElement;
       invokeLayoutCallback((constraints) {
         spElement = childManager.constructPrevElement(
             scrollOffset, viewportHeight, cachedElements);
@@ -117,7 +118,7 @@ class ChatListRender extends RenderSliver with RenderSliverWithKeepAliveMixin {
     }
 
     while (true) {
-      ChatListRenderData? spElement;
+      FlutterListViewRenderData? spElement;
       invokeLayoutCallback((constraints) {
         spElement = childManager.constructNextElement(
             scrollOffset, viewportHeight, cachedElements);
@@ -195,7 +196,7 @@ class ChatListRender extends RenderSliver with RenderSliverWithKeepAliveMixin {
         var correctOffsetDy = itemDy - _firstPainItemOffset!.dy;
 
         if (constraints.scrollOffset != correctOffsetDy) {
-          late ChatListRenderData chatElem;
+          late FlutterListViewRenderData chatElem;
           invokeLayoutCallback((constraints) {
             chatElem =
                 childManager.constructOneIndexElement(matchedIndex, itemDy, []);
@@ -226,8 +227,8 @@ class ChatListRender extends RenderSliver with RenderSliverWithKeepAliveMixin {
     final double scrollOffset = constraints.scrollOffset;
     final double cacheOrigin = constraints.cacheOrigin;
     if (cacheOrigin < 0) {
-      ChatListRenderData? firstElementInViewport;
-      ChatListRenderData? prevStickyElement;
+      FlutterListViewRenderData? firstElementInViewport;
+      FlutterListViewRenderData? prevStickyElement;
       for (var item in childManager.renderedElements) {
         if (item.offset > scrollOffset) {
           firstElementInViewport = item;
@@ -247,7 +248,7 @@ class ChatListRender extends RenderSliver with RenderSliverWithKeepAliveMixin {
         }
       }
 
-      ChatListRenderData? removedSticky;
+      FlutterListViewRenderData? removedSticky;
       if (prevStickyIndex != null) {
         // Check the sticky element is in renderElements
         for (var item in childManager.renderedElements) {
@@ -289,7 +290,7 @@ class ChatListRender extends RenderSliver with RenderSliverWithKeepAliveMixin {
     }
   }
 
-  ChatListGrowDirectionInfo _getGrowDirectionInfo(Offset offset) {
+  FlutterListViewGrowDirectionInfo _getGrowDirectionInfo(Offset offset) {
 // offset is to the top-left corner, regardless of our axis direction.
     // originOffset gives us the delta from the real origin to the origin in the axis direction.
     final Offset mainAxisUnit, crossAxisUnit, originOffset;
@@ -323,7 +324,7 @@ class ChatListRender extends RenderSliver with RenderSliverWithKeepAliveMixin {
         break;
     }
 
-    return ChatListGrowDirectionInfo(
+    return FlutterListViewGrowDirectionInfo(
         addExtent: addExtent,
         mainAxisUnit: mainAxisUnit,
         crossAxisUnit: crossAxisUnit,
