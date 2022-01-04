@@ -1,6 +1,6 @@
 name: flutter_list_view
 description: Provide enhanced list view include jump index, keep position etc.
-version: 1.0.0
+version: 0.1.0
 homepage: https://github.com/robert-luoqing/flutter_list_view
 
 environment:
