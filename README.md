@@ -1,33 +1,17 @@
-Vertical marquee view
+## Flutter List View
+
+I don't like official list view. There are some features don't provide and jumpTo performance is not good. I rewrite the list supported these features in [Features] sections
 
 ## Features
 
-1. Support up and down direction scroll
-2. Support multiple line marquee list
+1. Support jump to index
+   Jump to index is not support in listview. But it is useful function 
+2. Support keep position
+   If some data insert before other items, It will scroll down. Some chat software may want to keep the position not scroll down when new message coming.
+3. Support show top in reverse model if the data can't fill full viewport.
+4. Performance
+   When listview jump to somewhere, The items which layout before the position will always loaded. It is not realy lazy loading.
+
 
 ## Screen
 
-![](screens/screen.gif)
-
-## Usage
-
-Firstly, you can construct data like
-
-```dart
-MarqueeVertical(
-  itemCount: texts.length,
-  lineHeight: 20,
-  marqueeLine: 3,
-  direction: MarqueeVerticalDirection.moveDown,
-  itemBuilder: (index) {
-    return Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          texts[index],
-          overflow: TextOverflow.ellipsis,
-        ));
-  },
-  scrollDuration: const Duration(milliseconds: 300),
-  stopDuration: const Duration(seconds: 3),
-),
-```
