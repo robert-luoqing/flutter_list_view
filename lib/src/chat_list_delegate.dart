@@ -4,6 +4,8 @@ typedef ChatListDelegateOnItemKey = String Function(int index);
 typedef ChatListDelegateOnItemSticky = bool Function(int index);
 typedef ChatListDelegateOnItemHeight = double Function(int index);
 
+enum FirstItemAlign { start, end }
+
 class ChatListDelegate extends SliverChildDelegate {
   /// Creates a delegate that supplies children for slivers using the given
   /// builder callback.
@@ -24,22 +26,32 @@ class ChatListDelegate extends SliverChildDelegate {
       this.semanticIndexCallback = _kDefaultSemanticIndexCallback,
       this.semanticIndexOffset = 0,
       this.onItemKey,
-      this.keepFloat = false,
+      this.keepPosition = false,
+      this.keepPositionOffset = 0,
       this.onItemSticky,
       this.onItemHeight,
-      this.preferItemHeight = 50});
+      this.preferItemHeight = 50,
+      this.firstItemAlign = FirstItemAlign.start});
+
+  /// When item is not enough fill one viewport. Where is the items shoule align to
+  /// For example: if reverse is false,
+  /// When [firstItemAlign]=FirstItemAlign.start, the item should located on top.
+  /// When [firstItemAlign]=FirstItemAlign.end, the item should located on bottom.
+  final FirstItemAlign firstItemAlign;
 
   /// [onItemKey] will indicate the item key
   /// The key will used to ref the item's height
-  /// If you enable keepFloat, the key will be used to identify inserted items
+  /// If you enable keepPosition, the key will be used to identify inserted items
   /// which is before the current rendered key
   final ChatListDelegateOnItemKey? onItemKey;
 
-  /// Whem keepFloat is false, If some item insert to header, the render items will scroll down a distance
+  /// Whem keepPosition is false, If some item insert to header, the render items will scroll down a distance
   /// which is equal the inserted items' height, When the property set to true, The current render item will
-  /// keep same position. Notice: it the keepFloat set to true, [onItemKey] must not be null and each item's must
+  /// keep same position. Notice: it the keepPosition set to true, [onItemKey] must not be null and each item's must
   /// unique.
-  final bool keepFloat;
+  /// When [keepPosition] is true and scrolloffset>=keepPositionOffset, the keep position will enable
+  final bool keepPosition;
+  final double keepPositionOffset;
 
   /// Query the item is sticky to header.
   final ChatListDelegateOnItemSticky? onItemSticky;

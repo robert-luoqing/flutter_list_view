@@ -47,12 +47,28 @@ class ChatListElement extends RenderObjectElement {
 
   double get totalItemHeight => _totalItemHeight;
 
-  bool get keepFloat {
+  FirstItemAlign get firstItemAlign {
     if (widget.delegate is ChatListDelegate) {
       var chatListDelegate = widget.delegate as ChatListDelegate;
-      return chatListDelegate.keepFloat;
+      return chatListDelegate.firstItemAlign;
+    }
+    return FirstItemAlign.start;
+  }
+
+  bool get keepPosition {
+    if (widget.delegate is ChatListDelegate) {
+      var chatListDelegate = widget.delegate as ChatListDelegate;
+      return chatListDelegate.keepPosition;
     }
     return false;
+  }
+
+  double get keepPositionOffset {
+    if (widget.delegate is ChatListDelegate) {
+      var chatListDelegate = widget.delegate as ChatListDelegate;
+      return chatListDelegate.keepPositionOffset;
+    }
+    return 0;
   }
 
   /// [_itemHeights]维护着已经layout的高度, 如果_itemHeights有，则取这个高度

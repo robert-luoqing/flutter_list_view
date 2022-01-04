@@ -12,10 +12,12 @@ class _TestListPageState extends State<TestListPage> {
   ScrollController scrollController = ScrollController();
   bool closeList = false;
   List<int> data = [];
-  bool keepFloat = false;
+  bool keepPosition = false;
+  bool reverse = false;
+  FirstItemAlign firstItemAlign = FirstItemAlign.start;
   @override
   initState() {
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 5; i++) {
       data.add(i);
     }
     super.initState();
@@ -89,60 +91,55 @@ class _TestListPageState extends State<TestListPage> {
                 ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        keepFloat = (!keepFloat);
+                        keepPosition = (!keepPosition);
                       });
                     },
-                    child: Text("Keep Float: $keepFloat")),
+                    child: Text("Keep Float: $keepPosition")),
+                ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        reverse = (!reverse);
+                      });
+                    },
+                    child: Text("Reverse: $reverse")),
+                ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        if (firstItemAlign == FirstItemAlign.start) {
+                          firstItemAlign = FirstItemAlign.end;
+                        } else {
+                          firstItemAlign = FirstItemAlign.start;
+                        }
+                      });
+                    },
+                    child:
+                        Text("FirstItemAlign: ${firstItemAlign.toString()}")),
               ]),
               Expanded(
                 child: CustomScrollView(
                   //为了能使CustomScrollView拉到顶部时还能继续往下拉，必须让 physics 支持弹性效果
-                  physics: const BouncingScrollPhysics(
-                      parent: AlwaysScrollableScrollPhysics()),
+                  // physics: const BouncingScrollPhysics(
+                  //     parent: AlwaysScrollableScrollPhysics()),
                   controller: scrollController,
+                  reverse: reverse,
                   slivers: [
                     // buildSliverList(15),
                     ChatList(
                         delegate: ChatListDelegate(
-                            (BuildContext context, int index) {
-                      return Container(
-                        alignment: Alignment.centerLeft,
-                        // color: Colors.lightBlue[100 * (index % 9)],
-                        color: Colors.blue,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text('List Item ${data[index]}'),
-                        ),
-                      );
-                    },
+                            (BuildContext context, int index) => Container(
+                                  alignment: Alignment.centerLeft,
+                                  // color: Colors.lightBlue[100 * (index % 9)],
+                                  color: Colors.blue,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text('List Item ${data[index]}'),
+                                  ),
+                                ),
                             childCount: data.length,
                             onItemKey: (index) => data[index].toString(),
-                            keepFloat: keepFloat)),
-                    // buildSliverList(5),
-                    // SliverFlexibleHeaderInner(
-                    //     visibleExtent: 200,
-                    //     child: Image.asset(
-                    //       "assets/avatar.png",
-                    //       fit: BoxFit.contain,
-                    //     )),
-                    // //我们需要实现的 SliverFlexibleHeader 组件
-                    // SliverFlexibleHeader(
-                    //   visibleExtent: 200, // 初始状态在列表中占用的布局高度
-                    //   // 为了能根据下拉状态变化来定制显示的布局，我们通过一个 builder 来动态构建布局。
-                    //   builder: (context, availableHeight, direction) {
-                    //     return GestureDetector(
-                    //       onTap: () => print('tap'), //测试是否可以响应事件
-                    //       child: Image(
-                    //         image: AssetImage("imgs/avatar.png"),
-                    //         width: 50.0,
-                    //         height: availableHeight,
-                    //         alignment: Alignment.bottomCenter,
-                    //         fit: BoxFit.cover,
-                    //       ),
-                    //     );
-                    //   },
-                    // ),
-                    // // 构建一个list
+                            keepPosition: keepPosition,
+                            keepPositionOffset: 80,
+                            firstItemAlign: firstItemAlign)),
                     // buildSliverList(50),
                   ],
                 ),

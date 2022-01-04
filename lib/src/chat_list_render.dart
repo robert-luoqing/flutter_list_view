@@ -1,6 +1,8 @@
+import 'package:chat_list/src/chat_list_delegate.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'chat_list_element.dart';
+import 'chat_list_model.dart';
 import 'chat_list_render_data.dart';
 
 class ChatListRender extends RenderSliver with RenderSliverWithKeepAliveMixin {
@@ -54,7 +56,7 @@ class ChatListRender extends RenderSliver with RenderSliverWithKeepAliveMixin {
   }
 
   /// The field will indicate next layout will not remove out of scope elements
-  bool _ignoreScopeCheckInNext = false;
+  bool _isAdjustByKeepPosition = false;
 
   @override
   void performLayout() {
@@ -72,6 +74,11 @@ class ChatListRender extends RenderSliver with RenderSliverWithKeepAliveMixin {
     // final double targetEndScrollOffset = scrollOffset + remainingExtent;
     final BoxConstraints childConstraints = constraints.asBoxConstraints();
 
+    var paintExtent = viewportHeight;
+    if (paintExtent > constraints.remainingPaintExtent) {
+      paintExtent = constraints.remainingPaintExtent;
+    }
+
     if (childManager.markAsInvalid) {
       childManager.markAsInvalid = false;
       childManager.calcTotalItemHeight();
@@ -80,47 +87,11 @@ class ChatListRender extends RenderSliver with RenderSliverWithKeepAliveMixin {
         childManager.removeAllChildren();
       });
 
-      if (childManager.keepFloat &&
-          _firstPainItemInViewport != null &&
-          constraints.cacheOrigin < 0) {
-        /// keep position when insert before rendered item.
-        /// 1. find item by itemKey
-        /// 2. cache position of the item
-        /// To resave performance. we will found on a range
-        var matchedIndex = findIndexByKeyAndOldIndex(
-            _firstPainItemInViewport!.itemKey, _firstPainItemInViewport!.index);
-        if (matchedIndex != null) {
-          // Calculate and correct the value
-          var itemDy = childManager.getScrollOffsetByIndex(matchedIndex);
-          var correctOffsetDy = itemDy - _firstPainItemOffset!.dy;
-          if (constraints.scrollOffset != correctOffsetDy) {
-            late ChatListRenderData chatElem;
-            invokeLayoutCallback((constraints) {
-              chatElem = childManager
-                  .constructOneIndexElement(matchedIndex, itemDy, []);
-            });
-            RenderBox child = chatElem.element.renderObject! as RenderBox;
-            child.layout(childConstraints, parentUsesSize: true);
-            var itemHeight = child.size.height;
-            childManager.updateElementPosition(
-                spEle: chatElem,
-                height: itemHeight,
-                needUpdateNextElementOffset: false);
-
-            _ignoreScopeCheckInNext = true;
-            geometry = SliverGeometry(
-                scrollExtent: childManager.totalItemHeight,
-                hasVisualOverflow: true,
-                scrollOffsetCorrection:
-                    correctOffsetDy - constraints.scrollOffset);
-            return;
-          }
-        }
-      }
+      if (_handleKeepPositionInLayout(viewportHeight, childConstraints)) return;
     }
 
     List<Element> cachedElements = [];
-    if (_ignoreScopeCheckInNext == false) {
+    if (_isAdjustByKeepPosition == false) {
       cachedElements =
           childManager.removeOutOfScopeElements(scrollOffset, viewportHeight);
     }
@@ -168,10 +139,25 @@ class ChatListRender extends RenderSliver with RenderSliverWithKeepAliveMixin {
       });
     }
 
-    var paintExtent = viewportHeight;
-    if (paintExtent > constraints.remainingPaintExtent) {
-      paintExtent = constraints.remainingPaintExtent;
+    if (_isAdjustByKeepPosition) {
+      var maxRemainArea = childManager.totalItemHeight - viewportHeight;
+      if (childManager.totalItemHeight <= viewportHeight &&
+          constraints.scrollOffset > 0) {
+        geometry = SliverGeometry(
+            scrollExtent: childManager.totalItemHeight,
+            hasVisualOverflow: true,
+            scrollOffsetCorrection: -constraints.scrollOffset);
+        return;
+      } else if (maxRemainArea > 0 &&
+          maxRemainArea < constraints.scrollOffset) {
+        geometry = SliverGeometry(
+            scrollExtent: childManager.totalItemHeight,
+            hasVisualOverflow: true,
+            scrollOffsetCorrection: maxRemainArea - constraints.scrollOffset);
+        return;
+      }
     }
+
     geometry = SliverGeometry(
         scrollExtent: childManager.totalItemHeight,
         paintExtent: paintExtent,
@@ -186,7 +172,54 @@ class ChatListRender extends RenderSliver with RenderSliverWithKeepAliveMixin {
     // print(
     //     "------------------------------->${constraints.scrollOffset}, $compensationScroll");
     _determineStickyElement(childConstraints);
-    _ignoreScopeCheckInNext = false;
+    _isAdjustByKeepPosition = false;
+  }
+
+  bool _handleKeepPositionInLayout(
+      double viewportHeight, Constraints childConstraints) {
+    if (childManager.keepPosition &&
+        childManager.keepPositionOffset <= constraints.scrollOffset &&
+        _firstPainItemInViewport != null &&
+        constraints.cacheOrigin <= 0 &&
+        constraints.remainingPaintExtent >= viewportHeight &&
+        childManager.totalItemHeight > viewportHeight) {
+      /// keep position when insert before rendered item.
+      /// 1. find item by itemKey
+      /// 2. cache position of the item
+      /// To resave performance. we will found on a range
+      var matchedIndex = findIndexByKeyAndOldIndex(
+          _firstPainItemInViewport!.itemKey, _firstPainItemInViewport!.index);
+      if (matchedIndex != null) {
+        // Calculate and correct the value
+        var itemDy = childManager.getScrollOffsetByIndex(matchedIndex);
+        var correctOffsetDy = itemDy - _firstPainItemOffset!.dy;
+
+        if (constraints.scrollOffset != correctOffsetDy) {
+          late ChatListRenderData chatElem;
+          invokeLayoutCallback((constraints) {
+            chatElem =
+                childManager.constructOneIndexElement(matchedIndex, itemDy, []);
+          });
+          RenderBox child = chatElem.element.renderObject! as RenderBox;
+          child.layout(childConstraints, parentUsesSize: true);
+          var itemHeight = child.size.height;
+          childManager.updateElementPosition(
+              spEle: chatElem,
+              height: itemHeight,
+              needUpdateNextElementOffset: false);
+
+          _isAdjustByKeepPosition = true;
+          geometry = SliverGeometry(
+              scrollExtent: childManager.totalItemHeight,
+              hasVisualOverflow: true,
+              scrollOffsetCorrection:
+                  correctOffsetDy - constraints.scrollOffset);
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   void _determineStickyElement(BoxConstraints childConstraints) {
@@ -256,18 +289,14 @@ class ChatListRender extends RenderSliver with RenderSliverWithKeepAliveMixin {
     }
   }
 
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    // print("-------offset: ${constraints.scrollOffset}");
-    var renderedElements = childManager.renderedElements;
-    if (renderedElements.isEmpty) return;
-
-    // offset is to the top-left corner, regardless of our axis direction.
+  ChatListGrowDirectionInfo _getGrowDirectionInfo(Offset offset) {
+// offset is to the top-left corner, regardless of our axis direction.
     // originOffset gives us the delta from the real origin to the origin in the axis direction.
     final Offset mainAxisUnit, crossAxisUnit, originOffset;
     final bool addExtent;
-    switch (applyGrowthDirectionToAxisDirection(
-        constraints.axisDirection, constraints.growthDirection)) {
+    final axisDirection = applyGrowthDirectionToAxisDirection(
+        constraints.axisDirection, constraints.growthDirection);
+    switch (axisDirection) {
       case AxisDirection.up:
         mainAxisUnit = const Offset(0.0, -1.0);
         crossAxisUnit = const Offset(1.0, 0.0);
@@ -294,21 +323,53 @@ class ChatListRender extends RenderSliver with RenderSliverWithKeepAliveMixin {
         break;
     }
 
+    return ChatListGrowDirectionInfo(
+        addExtent: addExtent,
+        mainAxisUnit: mainAxisUnit,
+        crossAxisUnit: crossAxisUnit,
+        originOffset: originOffset,
+        axisDirection: axisDirection);
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    // print("-------offset: ${constraints.scrollOffset}");
+    var renderedElements = childManager.renderedElements;
+    if (renderedElements.isEmpty) return;
+
+    // offset is to the top-left corner, regardless of our axis direction.
+    // originOffset gives us the delta from the real origin to the origin in the axis direction.
+    var growInfo = _getGrowDirectionInfo(offset);
     _firstPainItemInViewport = null;
 
     for (var chatElement in renderedElements) {
       RenderBox child = chatElement.element.renderObject as RenderBox;
       final double mainAxisDelta = childMainAxisPosition(child);
       final double crossAxisDelta = childCrossAxisPosition(child);
-      Offset childOffset = Offset(
-        originOffset.dx +
-            mainAxisUnit.dx * mainAxisDelta +
-            crossAxisUnit.dx * crossAxisDelta,
-        originOffset.dy +
-            mainAxisUnit.dy * mainAxisDelta +
-            crossAxisUnit.dy * crossAxisDelta,
+
+      /// [normalChildOffset] is not care about the axis direction, it just down direction
+      var normalMainAxisUnit = const Offset(0.0, 1.0);
+      var normalCrossAxisUnit = const Offset(1.0, 0.0);
+      var normalChildOffset = Offset(
+        offset.dx +
+            normalMainAxisUnit.dx * mainAxisDelta +
+            normalCrossAxisUnit.dx * crossAxisDelta,
+        offset.dy +
+            normalMainAxisUnit.dy * mainAxisDelta +
+            normalCrossAxisUnit.dy * crossAxisDelta,
       );
-      if (addExtent) childOffset += mainAxisUnit * child.size.height;
+
+      Offset childOffset = Offset(
+        growInfo.originOffset.dx +
+            growInfo.mainAxisUnit.dx * mainAxisDelta +
+            growInfo.crossAxisUnit.dx * crossAxisDelta,
+        growInfo.originOffset.dy +
+            growInfo.mainAxisUnit.dy * mainAxisDelta +
+            growInfo.crossAxisUnit.dy * crossAxisDelta,
+      );
+      if (growInfo.addExtent) {
+        childOffset += growInfo.mainAxisUnit * child.size.height;
+      }
 
       // If the child's visible interval (mainAxisDelta, mainAxisDelta + paintExtentOf(child))
       // does not intersect the paint extent interval (0, constraints.remainingPaintExtent), it's hidden.
@@ -316,7 +377,25 @@ class ChatListRender extends RenderSliver with RenderSliverWithKeepAliveMixin {
           mainAxisDelta + child.size.height > 0) {
         if (_firstPainItemInViewport == null) {
           _firstPainItemInViewport = chatElement;
-          _firstPainItemOffset = childOffset;
+          _firstPainItemOffset = normalChildOffset;
+        }
+
+        if (childManager.firstItemAlign == FirstItemAlign.end) {
+          if (geometry!.scrollExtent < constraints.viewportMainAxisExtent) {
+            if (growInfo.axisDirection == AxisDirection.down) {
+              childOffset = Offset(
+                  childOffset.dx,
+                  childOffset.dy +
+                      constraints.viewportMainAxisExtent -
+                      geometry!.scrollExtent);
+            } else {
+              childOffset = Offset(
+                  childOffset.dx,
+                  childOffset.dy +
+                      geometry!.scrollExtent -
+                      constraints.viewportMainAxisExtent);
+            }
+          }
         }
 
         context.paintChild(child, childOffset);
@@ -359,6 +438,66 @@ class ChatListRender extends RenderSliver with RenderSliverWithKeepAliveMixin {
     var renderedElements = childManager.renderedElements;
     for (var element in renderedElements) {
       element.element.renderObject!.detach();
+    }
+  }
+
+  @override
+  void applyPaintTransform(covariant RenderBox child, Matrix4 transform) {
+    final SliverMultiBoxAdaptorParentData childParentData =
+        child.parentData! as SliverMultiBoxAdaptorParentData;
+    if (childParentData.index == null) {
+      // If the child has no index, such as with the prototype of a
+      // SliverPrototypeExtentList, then it is not visible, so we give it a
+      // zero transform to prevent it from painting.
+      transform.setZero();
+    } else {
+      applyPaintTransformForBoxChild(child, transform);
+    }
+  }
+
+  bool _getRightWayUp(SliverConstraints constraints) {
+    assert(constraints != null);
+    assert(constraints.axisDirection != null);
+    bool rightWayUp;
+    switch (constraints.axisDirection) {
+      case AxisDirection.up:
+      case AxisDirection.left:
+        rightWayUp = false;
+        break;
+      case AxisDirection.down:
+      case AxisDirection.right:
+        rightWayUp = true;
+        break;
+    }
+    assert(constraints.growthDirection != null);
+    switch (constraints.growthDirection) {
+      case GrowthDirection.forward:
+        break;
+      case GrowthDirection.reverse:
+        rightWayUp = !rightWayUp;
+        break;
+    }
+    assert(rightWayUp != null);
+    return rightWayUp;
+  }
+
+  void applyPaintTransformForBoxChild(RenderBox child, Matrix4 transform) {
+    final bool rightWayUp = _getRightWayUp(constraints);
+    double delta = childMainAxisPosition(child);
+    final double crossAxisDelta = childCrossAxisPosition(child);
+    switch (constraints.axis) {
+      case Axis.horizontal:
+        if (!rightWayUp) {
+          delta = geometry!.paintExtent - child.size.width - delta;
+        }
+        transform.translate(delta, crossAxisDelta);
+        break;
+      case Axis.vertical:
+        if (!rightWayUp) {
+          delta = geometry!.paintExtent - child.size.height - delta;
+        }
+        transform.translate(crossAxisDelta, delta);
+        break;
     }
   }
 }
