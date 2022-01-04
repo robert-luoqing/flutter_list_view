@@ -2,5 +2,5 @@
 * Provide keep position feature
 * provide show top in reverse mode
 * Reuse list item element to save performance
-## 1.1.1
-* TODO: Describe initial release.
+## 0.1.1
+* Provide jumpToIndex
