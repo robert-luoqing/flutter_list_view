@@ -21,6 +21,9 @@ class FlutterListViewRender extends RenderSliver
   double? currentScrollOffset;
   double? currentViewportHeight;
 
+  /// [_trackedNextStickyElement] is evaluate in performLayout and used it paint
+  FlutterListViewRenderData? _trackedNextStickyElement;
+
   @override
   void setupParentData(RenderObject child) {
     if (child.parentData is! SliverMultiBoxAdaptorParentData) {
@@ -180,6 +183,9 @@ class FlutterListViewRender extends RenderSliver
       }
     }
 
+    /// find sticky item and construct it
+    _determineStickyElement(childConstraints);
+
     geometry = SliverGeometry(
         scrollExtent: childManager.totalItemHeight,
         paintExtent: paintExtent,
@@ -191,9 +197,7 @@ class FlutterListViewRender extends RenderSliver
         hasVisualOverflow: true,
         scrollOffsetCorrection:
             compensationScroll == 0 ? null : compensationScroll);
-    // print(
-    //     "------------------------------->${constraints.scrollOffset}, $compensationScroll");
-    _determineStickyElement(childConstraints);
+
     if (_isAdjustOperation) {
       childManager.notifyPositionChanged();
     }
@@ -210,7 +214,8 @@ class FlutterListViewRender extends RenderSliver
 
     late FlutterListViewRenderData chatElem;
     invokeLayoutCallback((constraints) {
-      chatElem = childManager.constructOneIndexElement(jumpIndex, itemDy, []);
+      chatElem =
+          childManager.constructOneIndexElement(jumpIndex, itemDy, [], true);
     });
     RenderBox child = chatElem.element.renderObject! as RenderBox;
     child.layout(childConstraints, parentUsesSize: true);
@@ -261,8 +266,8 @@ class FlutterListViewRender extends RenderSliver
         if (constraints.scrollOffset != correctOffsetDy) {
           late FlutterListViewRenderData chatElem;
           invokeLayoutCallback((constraints) {
-            chatElem =
-                childManager.constructOneIndexElement(matchedIndex, itemDy, []);
+            chatElem = childManager.constructOneIndexElement(
+                matchedIndex, itemDy, [], true);
           });
           RenderBox child = chatElem.element.renderObject! as RenderBox;
           child.layout(childConstraints, parentUsesSize: true);
@@ -289,13 +294,26 @@ class FlutterListViewRender extends RenderSliver
   void _determineStickyElement(BoxConstraints childConstraints) {
     final double scrollOffset = constraints.scrollOffset;
     final double cacheOrigin = constraints.cacheOrigin;
+    _trackedNextStickyElement = null;
     if (cacheOrigin < 0) {
       FlutterListViewRenderData? firstElementInViewport;
       FlutterListViewRenderData? prevStickyElement;
+
+      bool oldStickyInRenderedElements = false;
       for (var item in childManager.renderedElements) {
-        if (item.offset > scrollOffset) {
+        if (firstElementInViewport == null && item.offset > scrollOffset) {
           firstElementInViewport = item;
-          break;
+        }
+        if (item == childManager.stickyElement) {
+          oldStickyInRenderedElements = true;
+        }
+
+        if (firstElementInViewport != null &&
+            _trackedNextStickyElement == null) {
+          var isSticky = childManager.queryIsStickyItemByIndex(item.index);
+          if (isSticky) {
+            _trackedNextStickyElement = item;
+          }
         }
       }
 
@@ -323,8 +341,8 @@ class FlutterListViewRender extends RenderSliver
         if (prevStickyElement == null) {
           removedSticky = childManager.stickyElement;
           invokeLayoutCallback((constraints) {
-            prevStickyElement =
-                childManager.constructOneIndexElement(prevStickyIndex!, 0, []);
+            prevStickyElement = childManager.constructOneIndexElement(
+                prevStickyIndex!, 0, [], false);
           });
           RenderBox child =
               prevStickyElement!.element.renderObject! as RenderBox;
@@ -343,12 +361,15 @@ class FlutterListViewRender extends RenderSliver
         childManager.stickyElement = prevStickyElement!;
       } else {
         removedSticky = childManager.stickyElement;
+        childManager.stickyElement = null;
       }
 
       if (removedSticky != null) {
-        invokeLayoutCallback((constraints) {
-          childManager.removeChildElement(removedSticky!.element);
-        });
+        if (oldStickyInRenderedElements == false) {
+          invokeLayoutCallback((constraints) {
+            childManager.removeChildElement(removedSticky!.element);
+          });
+        }
       }
     }
   }
@@ -405,9 +426,9 @@ class FlutterListViewRender extends RenderSliver
     // originOffset gives us the delta from the real origin to the origin in the axis direction.
     var growInfo = _getGrowDirectionInfo(offset);
     firstPainItemInViewport = null;
-
-    for (var chatElement in renderedElements) {
-      RenderBox child = chatElement.element.renderObject as RenderBox;
+    Offset? nextStickyOffset;
+    for (var renderElement in renderedElements) {
+      RenderBox child = renderElement.element.renderObject as RenderBox;
       final double mainAxisDelta = childMainAxisPosition(child);
       final double crossAxisDelta = childCrossAxisPosition(child);
 
@@ -440,7 +461,7 @@ class FlutterListViewRender extends RenderSliver
       if (mainAxisDelta < constraints.remainingPaintExtent &&
           mainAxisDelta + child.size.height > 0) {
         if (firstPainItemInViewport == null) {
-          firstPainItemInViewport = chatElement;
+          firstPainItemInViewport = renderElement;
           firstPainItemOffset = normalChildOffset;
         }
 
@@ -461,8 +482,24 @@ class FlutterListViewRender extends RenderSliver
             }
           }
         }
+        if (renderElement != childManager.stickyElement) {
+          context.paintChild(child, childOffset);
+          if (renderElement == _trackedNextStickyElement) {
+            nextStickyOffset = normalChildOffset;
+          }
+        }
+      }
+    }
 
-        context.paintChild(child, childOffset);
+    if (childManager.stickyElement != null) {
+      var stickyRenderObj =
+          childManager.stickyElement!.element.renderObject! as RenderBox;
+      if (nextStickyOffset == null ||
+          nextStickyOffset.dy > stickyRenderObj.size.height) {
+        context.paintChild(stickyRenderObj, const Offset(0, 0));
+      } else {
+        var stickyOffsetDy = nextStickyOffset.dy - stickyRenderObj.size.height;
+        context.paintChild(stickyRenderObj, Offset(0, stickyOffsetDy));
       }
     }
 
@@ -472,8 +509,17 @@ class FlutterListViewRender extends RenderSliver
 
   @override
   void visitChildren(RenderObjectVisitor visitor) {
+    bool stickyElementHasVisited = false;
+    var stickyElement = childManager.stickyElement;
     for (var item in childManager.renderedElements) {
       visitor(item.element.renderObject!);
+      if (item == stickyElement) {
+        stickyElementHasVisited = true;
+      }
+    }
+
+    if (stickyElement != null && stickyElementHasVisited == false) {
+      visitor(stickyElement.element.renderObject!);
     }
   }
 
@@ -494,8 +540,17 @@ class FlutterListViewRender extends RenderSliver
   void attach(PipelineOwner owner) {
     super.attach(owner);
     var renderedElements = childManager.renderedElements;
+    var stickyElement = childManager.stickyElement;
+    var stickyIsInRenderedElements = false;
     for (var element in renderedElements) {
       element.element.renderObject!.attach(owner);
+      if (element == stickyElement) {
+        stickyIsInRenderedElements = true;
+      }
+    }
+
+    if (stickyIsInRenderedElements == false && stickyElement != null) {
+      stickyElement.element.renderObject!.attach(owner);
     }
   }
 
@@ -503,8 +558,16 @@ class FlutterListViewRender extends RenderSliver
   void detach() {
     super.detach();
     var renderedElements = childManager.renderedElements;
+    var stickyElement = childManager.stickyElement;
+    var stickyIsInRenderedElements = false;
     for (var element in renderedElements) {
       element.element.renderObject!.detach();
+      if (element == stickyElement) {
+        stickyIsInRenderedElements = true;
+      }
+    }
+    if (stickyIsInRenderedElements == false && stickyElement != null) {
+      stickyElement.element.renderObject!.detach();
     }
   }
 

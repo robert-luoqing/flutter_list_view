@@ -263,13 +263,15 @@ class FlutterListViewElement extends RenderObjectElement {
   }
 
   FlutterListViewRenderData constructOneIndexElement(
-    int index,
-    double itemOffset,
-    List<Element> cachedElements,
-  ) {
+      int index,
+      double itemOffset,
+      List<Element> cachedElements,
+      bool needInsertToRenderElement) {
     var result = _createOrReuseElement(cachedElements, index);
     result.offset = itemOffset;
-    _renderedElements.insert(0, result);
+    if (needInsertToRenderElement) {
+      _renderedElements.insert(0, result);
+    }
 
     return result;
   }

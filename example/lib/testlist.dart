@@ -57,8 +57,8 @@ class _TestListPageState extends State<TestListPage> {
         ),
         body: NotificationListener<ScrollNotification>(
           onNotification: (notification) {
-            print(
-                "scroll pixel: ${notification.metrics.pixels}, max: ${notification.metrics.maxScrollExtent}");
+            // print(
+            //     "scroll pixel: ${notification.metrics.pixels}, max: ${notification.metrics.maxScrollExtent}");
             return true;
           },
           child: Column(
@@ -154,6 +154,11 @@ class _TestListPageState extends State<TestListPage> {
                               child: Text('List Item ${data[index]}'),
                             ),
                           );
+                        }, onItemSticky: (index) {
+                          if (index == 2 || index == 7) {
+                            return true;
+                          }
+                          return false;
                         },
                             childCount: data.length,
                             onItemKey: (index) => data[index].toString(),
