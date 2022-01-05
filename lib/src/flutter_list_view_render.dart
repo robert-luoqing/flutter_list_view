@@ -16,8 +16,10 @@ class FlutterListViewRender extends RenderSliver
   /// Remember the first paint item in viewport
   /// We will use the data to keep position if some items
   /// insert before the item
-  FlutterListViewRenderData? _firstPainItemInViewport;
-  Offset? _firstPainItemOffset;
+  FlutterListViewRenderData? firstPainItemInViewport;
+  Offset? firstPainItemOffset;
+  double? currentScrollOffset;
+  double? currentViewportHeight;
 
   @override
   void setupParentData(RenderObject child) {
@@ -61,6 +63,10 @@ class FlutterListViewRender extends RenderSliver
 
   @override
   void performLayout() {
+    if (childManager.supressElementGenerate) {
+      return;
+    }
+
     final SliverConstraints constraints = this.constraints;
 
     // print("cacheOrigin: ${constraints.cacheOrigin}");
@@ -188,6 +194,9 @@ class FlutterListViewRender extends RenderSliver
     // print(
     //     "------------------------------->${constraints.scrollOffset}, $compensationScroll");
     _determineStickyElement(childConstraints);
+    if (_isAdjustOperation) {
+      childManager.notifyPositionChanged();
+    }
     _isAdjustOperation = false;
   }
 
@@ -234,7 +243,7 @@ class FlutterListViewRender extends RenderSliver
       double viewportHeight, Constraints childConstraints) {
     if (childManager.keepPosition &&
         childManager.keepPositionOffset <= constraints.scrollOffset &&
-        _firstPainItemInViewport != null &&
+        firstPainItemInViewport != null &&
         constraints.cacheOrigin <= 0 &&
         constraints.remainingPaintExtent >= viewportHeight &&
         childManager.totalItemHeight > viewportHeight) {
@@ -243,11 +252,11 @@ class FlutterListViewRender extends RenderSliver
       /// 2. cache position of the item
       /// To resave performance. we will found on a range
       var matchedIndex = findIndexByKeyAndOldIndex(
-          _firstPainItemInViewport!.itemKey, _firstPainItemInViewport!.index);
+          firstPainItemInViewport!.itemKey, firstPainItemInViewport!.index);
       if (matchedIndex != null) {
         // Calculate and correct the value
         var itemDy = childManager.getScrollOffsetByIndex(matchedIndex);
-        var correctOffsetDy = itemDy - _firstPainItemOffset!.dy;
+        var correctOffsetDy = itemDy - firstPainItemOffset!.dy;
 
         if (constraints.scrollOffset != correctOffsetDy) {
           late FlutterListViewRenderData chatElem;
@@ -395,7 +404,7 @@ class FlutterListViewRender extends RenderSliver
     // offset is to the top-left corner, regardless of our axis direction.
     // originOffset gives us the delta from the real origin to the origin in the axis direction.
     var growInfo = _getGrowDirectionInfo(offset);
-    _firstPainItemInViewport = null;
+    firstPainItemInViewport = null;
 
     for (var chatElement in renderedElements) {
       RenderBox child = chatElement.element.renderObject as RenderBox;
@@ -430,9 +439,9 @@ class FlutterListViewRender extends RenderSliver
       // does not intersect the paint extent interval (0, constraints.remainingPaintExtent), it's hidden.
       if (mainAxisDelta < constraints.remainingPaintExtent &&
           mainAxisDelta + child.size.height > 0) {
-        if (_firstPainItemInViewport == null) {
-          _firstPainItemInViewport = chatElement;
-          _firstPainItemOffset = normalChildOffset;
+        if (firstPainItemInViewport == null) {
+          firstPainItemInViewport = chatElement;
+          firstPainItemOffset = normalChildOffset;
         }
 
         if (childManager.firstItemAlign == FirstItemAlign.end) {
@@ -456,6 +465,9 @@ class FlutterListViewRender extends RenderSliver
         context.paintChild(child, childOffset);
       }
     }
+
+    currentScrollOffset = constraints.scrollOffset;
+    currentViewportHeight = constraints.viewportMainAxisExtent;
   }
 
   @override

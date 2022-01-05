@@ -57,8 +57,8 @@ class _TestListPageState extends State<TestListPage> {
         ),
         body: NotificationListener<ScrollNotification>(
           onNotification: (notification) {
-            // print(
-            //     "scroll pixel: ${notification.metrics.pixels}, max: ${notification.metrics.maxScrollExtent}");
+            print(
+                "scroll pixel: ${notification.metrics.pixels}, max: ${notification.metrics.maxScrollExtent}");
             return true;
           },
           child: Column(
@@ -75,11 +75,20 @@ class _TestListPageState extends State<TestListPage> {
                     child: const Text("Jump")),
                 ElevatedButton(
                     onPressed: () {
-                      setState(() {
-                        closeList = !closeList;
-                      });
+                      flutterListViewController.animateToIndex(
+                          int.parse(textController.text),
+                          offset: 0,
+                          offsetBasedOnBottom: true,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.ease);
                     },
-                    child: const Text("Switch List")),
+                    child: const Text("Animite")),
+                ElevatedButton(
+                    onPressed: () {
+                      scrollController
+                          .jumpTo(double.parse(textController.text));
+                    },
+                    child: const Text("Scroll To")),
                 ElevatedButton(
                     onPressed: () {
                       setState(() {

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import 'flutter_list_view.dart';
+import 'flutter_list_view_render.dart';
 import 'flutter_list_view_render_data.dart';
 
 class FlutterListViewElement extends RenderObjectElement {
@@ -20,10 +21,21 @@ class FlutterListViewElement extends RenderObjectElement {
   /// [indexShoudBeJumpTo] is mean not jump to
   int? indexShoudBeJumpTo;
   double indexShoudBeJumpOffset = 0.0;
+
+  /// [offsetBasedOnBottom] only apply to jumpTo and comunicate with render
   bool offsetBasedOnBottom = false;
+
+  /// When [supressElementGenerate] is true, then notify render don't need
+  /// create and drop element, just kepp current element
+  bool supressElementGenerate = false;
 
   @override
   FlutterListView get widget => super.widget as FlutterListView;
+
+  ScrollableState? get parentScrollableState {
+    ScrollableState? scrollable = Scrollable.of(this);
+    return scrollable;
+  }
 
   @override
   void update(covariant FlutterListView newWidget) {
@@ -73,6 +85,49 @@ class FlutterListViewElement extends RenderObjectElement {
     offsetBasedOnBottom = basedOnBottom;
     markAsInvalid = true;
     renderObject.markNeedsLayout();
+  }
+
+  Future<void> animateToIndex(int index,
+      {required double offset,
+      required bool basedOnBottom,
+      required Duration duration,
+      required Curve curve}) async {
+    assert(index >= 0 && index < childCount,
+        "Index should be >=0 and  <= child count");
+
+    var scrollOffset = getScrollOffsetByIndex(index);
+    var flutterListViewRender = renderObject as FlutterListViewRender;
+    var viewportHeight = flutterListViewRender.currentViewportHeight ?? 0;
+
+    if (basedOnBottom) {
+      var itemHeight = getItemHeight(getKeyByItemIndex(index), index);
+      scrollOffset = scrollOffset - (viewportHeight - itemHeight - offset);
+    } else {
+      scrollOffset -= offset;
+    }
+
+    if (scrollOffset < 0) scrollOffset = 0;
+
+    supressElementGenerate = true;
+    try {
+      var position = parentScrollableState?.position;
+      await position?.animateTo(scrollOffset, duration: duration, curve: curve);
+    } catch (e, s) {
+      print("error in animateToIndex in flutter list view element, $e, $s");
+    } finally {
+      supressElementGenerate = false;
+    }
+
+    jumpToIndex(index, offset, basedOnBottom);
+  }
+
+  /// [notifyPositionChanged] is used to send ScrollNotification
+  void notifyPositionChanged() {
+    WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
+      var position = parentScrollableState?.position;
+      position?.didStartScroll();
+      position?.didEndScroll();
+    });
   }
 
   FirstItemAlign get firstItemAlign {
@@ -313,7 +368,7 @@ class FlutterListViewElement extends RenderObjectElement {
     List<Element> cachedElements,
   ) {
     double cacheExtent = viewportHeight;
-    double endOffset = scrollOffset + cacheExtent;
+    double endOffset = scrollOffset + viewportHeight + cacheExtent;
 
     FlutterListViewRenderData? result;
 
