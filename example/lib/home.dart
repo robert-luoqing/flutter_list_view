@@ -22,6 +22,11 @@ class _HomePageState extends State<HomePage> {
           children: <Widget>[
             ElevatedButton(
                 onPressed: () {
+                  Navigator.of(context).pushNamed("/pullToRefreshList");
+                },
+                child: const Text("Intergrate pull to refresh")),
+            ElevatedButton(
+                onPressed: () {
                   Navigator.of(context).pushNamed("/testListPage");
                 },
                 child: const Text("Test List")),

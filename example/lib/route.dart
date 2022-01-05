@@ -1,3 +1,4 @@
+import 'pull_to_refresh_list.dart';
 import 'testlist.dart';
 import 'home.dart';
 import 'package:flutter/widgets.dart';
@@ -13,5 +14,6 @@ class SectionViewRoute {
           ],
         ),
     "/testListPage": (context) => const TestListPage(),
+    "/pullToRefreshList": (context) => const PullToRefreshList(),
   };
 }
