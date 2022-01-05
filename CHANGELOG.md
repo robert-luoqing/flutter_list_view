@@ -4,3 +4,6 @@
 * Reuse list item element to save performance
 ## 0.1.1
 * Provide jumpToIndex
+## 1.0.0
+* Provide anmiteToIndex
+* Integrate pull_to_refresh

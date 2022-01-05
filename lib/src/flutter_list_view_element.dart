@@ -3,14 +3,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import 'flutter_list_view.dart';
 import 'flutter_list_view_render.dart';
 import 'flutter_list_view_render_data.dart';
+import 'flutter_sliver_list.dart';
 
 class FlutterListViewElement extends RenderObjectElement {
-  FlutterListViewElement(FlutterListView widget) : super(widget) {
+  FlutterListViewElement(FlutterSliverList widget) : super(widget) {
     if (widget.controller != null) {
       widget.controller!.attach(this);
+      if (stickyElement != null) {
+        widget.controller!.stickyIndex.value = stickyElement!.index;
+      }
     }
   }
 
@@ -30,7 +33,7 @@ class FlutterListViewElement extends RenderObjectElement {
   bool supressElementGenerate = false;
 
   @override
-  FlutterListView get widget => super.widget as FlutterListView;
+  FlutterSliverList get widget => super.widget as FlutterSliverList;
 
   ScrollableState? get parentScrollableState {
     ScrollableState? scrollable = Scrollable.of(this);
@@ -38,8 +41,8 @@ class FlutterListViewElement extends RenderObjectElement {
   }
 
   @override
-  void update(covariant FlutterListView newWidget) {
-    final FlutterListView oldWidget = widget;
+  void update(covariant FlutterSliverList newWidget) {
+    final FlutterSliverList oldWidget = widget;
     super.update(newWidget);
     if (oldWidget.controller != newWidget.controller) {
       if (oldWidget.controller != null) {
@@ -47,6 +50,9 @@ class FlutterListViewElement extends RenderObjectElement {
       }
       if (newWidget.controller != null) {
         newWidget.controller!.attach(this);
+        if (stickyElement != null) {
+          newWidget.controller!.stickyIndex.value = stickyElement!.index;
+        }
       }
     }
 
@@ -127,6 +133,16 @@ class FlutterListViewElement extends RenderObjectElement {
       var position = parentScrollableState?.position;
       position?.didStartScroll();
       position?.didEndScroll();
+    });
+  }
+
+  void notifyStickyChanged(int? index) {
+    WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
+      if (widget.controller != null) {
+        if (widget.controller!.stickyIndex.value != index) {
+          widget.controller!.stickyIndex.value = index;
+        }
+      }
     });
   }
 

@@ -10,8 +10,8 @@ class TestListPage extends StatefulWidget {
 
 class _TestListPageState extends State<TestListPage> {
   ScrollController scrollController = ScrollController();
-  FlutterListViewController flutterListViewController =
-      FlutterListViewController();
+  FlutterSliverListController flutterListViewController =
+      FlutterSliverListController();
   TextEditingController textController = TextEditingController(text: "");
   bool closeList = false;
   List<int> data = [];
@@ -20,7 +20,7 @@ class _TestListPageState extends State<TestListPage> {
   FirstItemAlign firstItemAlign = FirstItemAlign.start;
   @override
   initState() {
-    for (var i = 0; i < 1000; i++) {
+    for (var i = 0; i < 40; i++) {
       data.add(i);
     }
     super.initState();
@@ -134,38 +134,30 @@ class _TestListPageState extends State<TestListPage> {
               ]),
               Expanded(
                 child: CustomScrollView(
-                  //为了能使CustomScrollView拉到顶部时还能继续往下拉，必须让 physics 支持弹性效果
-                  // physics: const BouncingScrollPhysics(
-                  //     parent: AlwaysScrollableScrollPhysics()),
                   controller: scrollController,
                   reverse: reverse,
                   slivers: [
-                    // buildSliverList(15),
-                    FlutterListView(
+                    buildSliverList(15),
+                    FlutterSliverList(
                         controller: flutterListViewController,
                         delegate: FlutterListViewDelegate(
-                            (BuildContext context, int index) {
-                          return Container(
-                            alignment: Alignment.centerLeft,
-                            // color: Colors.lightBlue[100 * (index % 9)],
-                            color: Colors.blue,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('List Item ${data[index]}'),
-                            ),
-                          );
-                        }, onItemSticky: (index) {
-                          if (index == 2 || index == 7) {
-                            return true;
-                          }
-                          return false;
-                        },
+                            (BuildContext context, int index) => Container(
+                                  color: Colors.white,
+                                  child: ListTile(
+                                      title: Text('List Item ${data[index]}')),
+                                ),
+                            onItemSticky: (index) {
+                              if (index == 2 || index == 7) {
+                                return true;
+                              }
+                              return false;
+                            },
                             childCount: data.length,
                             onItemKey: (index) => data[index].toString(),
                             keepPosition: keepPosition,
                             keepPositionOffset: 80,
                             firstItemAlign: firstItemAlign)),
-                    // buildSliverList(50),
+                    buildSliverList(50),
                   ],
                 ),
               ),

@@ -84,11 +84,6 @@ class FlutterListViewRender extends RenderSliver
     // final double targetEndScrollOffset = scrollOffset + remainingExtent;
     final BoxConstraints childConstraints = constraints.asBoxConstraints();
 
-    var paintExtent = viewportHeight;
-    if (paintExtent > constraints.remainingPaintExtent) {
-      paintExtent = constraints.remainingPaintExtent;
-    }
-
     if (childManager.markAsInvalid) {
       childManager.markAsInvalid = false;
       childManager.calcTotalItemHeight();
@@ -186,15 +181,43 @@ class FlutterListViewRender extends RenderSliver
     /// find sticky item and construct it
     _determineStickyElement(childConstraints);
 
+    double firstRenderChildOffset = 0;
+    double endRenderChildOffset = 0;
+    var elements = childManager.renderedElements;
+    if (elements.isNotEmpty) {
+      firstRenderChildOffset = elements.first.offset;
+      var lastElement = elements.last;
+      endRenderChildOffset = lastElement.offset + lastElement.height;
+    }
+
+    final double paintExtent = calculatePaintOffset(
+      constraints,
+      from: firstRenderChildOffset,
+      to: endRenderChildOffset,
+    );
+    final double cacheExtent = calculateCacheOffset(
+      constraints,
+      from: firstRenderChildOffset,
+      to: endRenderChildOffset,
+    );
+    // var paintExtent = viewportHeight;
+    // if (paintExtent > constraints.remainingPaintExtent) {
+    //   cacheExtent = constraints.remainingPaintExtent;
+    // }
+    // cacheExtent = cacheExtent;
+
+    final double targetEndScrollOffsetForPaint =
+        constraints.scrollOffset + constraints.remainingPaintExtent;
     geometry = SliverGeometry(
         scrollExtent: childManager.totalItemHeight,
         paintExtent: paintExtent,
-        cacheExtent: viewportHeight,
+        cacheExtent: cacheExtent,
         maxPaintExtent: paintExtent,
         // Conservative to avoid flickering away the clip during scroll.
-        // hasVisualOverflow: endScrollOffset > targetEndScrollOffsetForPaint ||
-        //     constraints.scrollOffset > 0.0,
-        hasVisualOverflow: true,
+        hasVisualOverflow:
+            endRenderChildOffset > targetEndScrollOffsetForPaint ||
+                constraints.scrollOffset > 0.0,
+        // hasVisualOverflow: true,
         scrollOffsetCorrection:
             compensationScroll == 0 ? null : compensationScroll);
 
@@ -294,8 +317,13 @@ class FlutterListViewRender extends RenderSliver
   void _determineStickyElement(BoxConstraints childConstraints) {
     final double scrollOffset = constraints.scrollOffset;
     final double cacheOrigin = constraints.cacheOrigin;
+    final double viewportHeight = constraints.viewportMainAxisExtent;
     _trackedNextStickyElement = null;
-    if (cacheOrigin < 0) {
+
+    /// The three condition indicate it is already reach header in multiple sliver
+    if (cacheOrigin <= 0 &&
+        constraints.remainingPaintExtent >= viewportHeight &&
+        childManager.totalItemHeight > viewportHeight) {
       FlutterListViewRenderData? firstElementInViewport;
       FlutterListViewRenderData? prevStickyElement;
 
@@ -371,6 +399,12 @@ class FlutterListViewRender extends RenderSliver
           });
         }
       }
+    }
+
+    if (childManager.stickyElement != null) {
+      childManager.notifyStickyChanged(childManager.stickyElement!.index);
+    } else {
+      childManager.notifyStickyChanged(null);
     }
   }
 
@@ -496,7 +530,7 @@ class FlutterListViewRender extends RenderSliver
           childManager.stickyElement!.element.renderObject! as RenderBox;
       if (nextStickyOffset == null ||
           nextStickyOffset.dy > stickyRenderObj.size.height) {
-        context.paintChild(stickyRenderObj, const Offset(0, 0));
+        context.paintChild(stickyRenderObj, offset);
       } else {
         var stickyOffsetDy = nextStickyOffset.dy - stickyRenderObj.size.height;
         context.paintChild(stickyRenderObj, Offset(0, stickyOffsetDy));

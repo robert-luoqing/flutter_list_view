@@ -30,7 +30,7 @@ class _PullToRefreshListState extends State<PullToRefreshList> {
 
   @override
   initState() {
-    for (var i = 0; i < 50; i++) {
+    for (var i = 0; i < 30; i++) {
       data.add(i);
     }
     super.initState();
@@ -43,42 +43,39 @@ class _PullToRefreshListState extends State<PullToRefreshList> {
         title: const Text("Intergrate pull to refresh in list"),
       ),
       body: SmartRefresher(
-          enablePullDown: true,
-          enablePullUp: true,
-          header: const WaterDropHeader(),
-          footer: CustomFooter(
-            builder: (context, mode) {
-              Widget body;
-              if (mode == LoadStatus.idle) {
-                body = const Text("pull up load");
-              } else if (mode == LoadStatus.loading) {
-                body = const CupertinoActivityIndicator();
-              } else if (mode == LoadStatus.failed) {
-                body = const Text("Load Failed!Click retry!");
-              } else if (mode == LoadStatus.canLoading) {
-                body = const Text("release to load more");
-              } else {
-                body = const Text("No more Data");
-              }
-              return SizedBox(
-                height: 55.0,
-                child: Center(child: body),
-              );
-            },
-          ),
-          controller: _refreshController,
-          onRefresh: _onRefresh,
-          onLoading: _onLoading,
-          child: CustomScrollView(
-            slivers: [
-              FlutterListView(
-                  delegate: FlutterListViewDelegate(
-                (BuildContext context, int index) =>
-                    ListTile(title: Text('List Item ${data[index]}')),
-                childCount: data.length,
-              )),
-            ],
-          )),
+        enablePullDown: true,
+        enablePullUp: true,
+        header: const WaterDropHeader(),
+        footer: CustomFooter(
+          builder: (context, mode) {
+            Widget body;
+            if (mode == LoadStatus.idle) {
+              body = const Text("pull up load");
+            } else if (mode == LoadStatus.loading) {
+              body = const CupertinoActivityIndicator();
+            } else if (mode == LoadStatus.failed) {
+              body = const Text("Load Failed!Click retry!");
+            } else if (mode == LoadStatus.canLoading) {
+              body = const Text("release to load more");
+            } else {
+              body = const Text("No more Data");
+            }
+            return SizedBox(
+              height: 55.0,
+              child: Center(child: body),
+            );
+          },
+        ),
+        controller: _refreshController,
+        onRefresh: _onRefresh,
+        onLoading: _onLoading,
+        child: FlutterListView(
+            delegate: FlutterListViewDelegate(
+          (BuildContext context, int index) =>
+              ListTile(title: Text('List Item ${data[index]}')),
+          childCount: data.length,
+        )),
+      ),
     );
   }
 }

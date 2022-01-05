@@ -27,6 +27,26 @@ class _HomePageState extends State<HomePage> {
                 child: const Text("Intergrate pull to refresh")),
             ElevatedButton(
                 onPressed: () {
+                  Navigator.of(context).pushNamed("/stickyHeader");
+                },
+                child: const Text("Sticky Header In List")),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed("/stickyHeaderWithRefresh");
+                },
+                child: const Text("Sticky Header With Pull to Refresh")),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed("/chat");
+                },
+                child: const Text("Chat")),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed("/jumpToIndexPage");
+                },
+                child: const Text("Jump to index")),
+            ElevatedButton(
+                onPressed: () {
                   Navigator.of(context).pushNamed("/testListPage");
                 },
                 child: const Text("Test List")),
