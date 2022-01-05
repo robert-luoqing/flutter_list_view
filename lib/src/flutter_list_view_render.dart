@@ -586,8 +586,6 @@ class FlutterListViewRender extends RenderSliver
   }
 
   bool _getRightWayUp(SliverConstraints constraints) {
-    assert(constraints != null);
-    assert(constraints.axisDirection != null);
     bool rightWayUp;
     switch (constraints.axisDirection) {
       case AxisDirection.up:
@@ -599,7 +597,6 @@ class FlutterListViewRender extends RenderSliver
         rightWayUp = true;
         break;
     }
-    assert(constraints.growthDirection != null);
     switch (constraints.growthDirection) {
       case GrowthDirection.forward:
         break;
@@ -607,7 +604,6 @@ class FlutterListViewRender extends RenderSliver
         rightWayUp = !rightWayUp;
         break;
     }
-    assert(rightWayUp != null);
     return rightWayUp;
   }
 
