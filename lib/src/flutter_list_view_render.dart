@@ -633,26 +633,28 @@ class FlutterListViewRender extends RenderSliver
   bool hitTestChildren(SliverHitTestResult result,
       {required double mainAxisPosition, required double crossAxisPosition}) {
     final BoxHitTestResult boxResult = BoxHitTestResult.wrap(result);
-    for (var i = childManager.renderedElements.length - 1; i >= 0; i--) {
-      var child =
-          childManager.renderedElements[i].element.renderObject as RenderBox;
+    if (childManager.stickyElement != null) {
+      var child = childManager.stickyElement!.element.renderObject as RenderBox;
       if (hitTestBoxChild(boxResult, child,
           mainAxisPosition: mainAxisPosition,
           crossAxisPosition: crossAxisPosition)) {
         return true;
       }
     }
+    for (var i = childManager.renderedElements.length - 1; i >= 0; i--) {
+      var item = childManager.renderedElements[i];
+      if (childManager.stickyElement != item) {
+        var child = item.element.renderObject as RenderBox;
+
+        if (hitTestBoxChild(boxResult, child,
+            mainAxisPosition: mainAxisPosition,
+            crossAxisPosition: crossAxisPosition)) {
+          return true;
+        }
+      }
+    }
 
     return false;
-    // RenderBox? child = lastChild;
-
-    // while (child != null) {
-    //   if (hitTestBoxChild(boxResult, child,
-    //       mainAxisPosition: mainAxisPosition,
-    //       crossAxisPosition: crossAxisPosition)) return true;
-    //   child = childBefore(child);
-    // }
-    // return false;
   }
 
   bool _getRightWayUp(SliverConstraints constraints) {
@@ -677,6 +679,7 @@ class FlutterListViewRender extends RenderSliver
     return rightWayUp;
   }
 
+  @override
   void applyPaintTransformForBoxChild(RenderBox child, Matrix4 transform) {
     final bool rightWayUp = _getRightWayUp(constraints);
     double delta = childMainAxisPosition(child);
