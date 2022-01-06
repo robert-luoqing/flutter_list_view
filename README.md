@@ -4,15 +4,15 @@ I don't like official list view. There are some features don't provide and jumpT
 
 ## Features
 
-1. Support jump to index
+1. Support jump to index  
    Jump to index is not support in listview. But it is useful function 
-2. Support keep position
+2. Support keep position  
    If some data insert before other items, It will scroll down. Some chat software may want to keep the position not scroll down when new message coming.
 3. Support show top in reverse mode if the data can't fill full viewport.
 4. Support header sticky
 5. Support integrate pull_to_refresh
 6. Support scroll to specify index when initialize data
-7. Performance
+7. Performance  
    When listview jump to somewhere, The items which layout before the position will always loaded. It is not realy lazy loading.
 
 ## Screen
