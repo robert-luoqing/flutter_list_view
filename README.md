@@ -53,6 +53,11 @@ FlutterListView(
   ))
 ```
 
+If you want better user expierence, preferItemHeight or onItemHeight may set to.
+- preferItemHeight 
+The package don't know the item's height, If you don't set, package alway think the item height is 50 util layout the item. If you know the height, you should set it.  
+- onItemHeight
+like preferItemHeight, the function will used to get height of each item util the item layout.
 ### Keep Position
 ```dart
 _renderList() {
@@ -88,6 +93,9 @@ _renderList() {
           firstItemAlign: FirstItemAlign.end));
 }
 ```
+
+Notice: Keep positoin need implement onItemKey, the onItemKey used to identify the unique of item. The key should difference with other items' key.
+We use the key to know what position you insert to current list. if you insert a item before the rendered item, package should increase the scrollOffset.
 
 ### Sticky header
 ```dart
@@ -131,7 +139,9 @@ Widget build(BuildContext context) {
         controller: controller),
   );
 }
+
 ```
+You can also check doc/stickyHeader.md
 
 ### Integrate pull_to_refresh
 ```dart

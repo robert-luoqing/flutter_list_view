@@ -58,9 +58,11 @@ class _JumpToIndexPageState extends State<JumpToIndexPage> {
             child: FlutterListView(
                 controller: controller,
                 delegate: FlutterListViewDelegate(
-                  (BuildContext context, int index) => Item(text: data[index]),
-                  childCount: data.length,
-                )),
+                    (BuildContext context, int index) =>
+                        Item(text: data[index]),
+                    childCount: data.length,
+                    preferItemHeight: 33,
+                    onItemHeight: (context) => 33)),
           ),
         ],
       ),
