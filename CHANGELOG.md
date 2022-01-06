@@ -14,3 +14,6 @@
 
 ## 1.0.3
 * Correct the items did not response the gesture event
+
+## 1.0.4
+* Correct sticky header may not response the gesture event
