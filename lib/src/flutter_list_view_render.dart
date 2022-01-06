@@ -569,7 +569,12 @@ class FlutterListViewRender extends RenderSliver
 
   @override
   double childMainAxisPosition(RenderBox child) {
-    return childScrollOffset(child)! - constraints.scrollOffset;
+    if (childManager.stickyElement != null &&
+        childManager.stickyElement!.element.renderObject == child) {
+      return 0;
+    } else {
+      return childScrollOffset(child)! - constraints.scrollOffset;
+    }
   }
 
   @override
