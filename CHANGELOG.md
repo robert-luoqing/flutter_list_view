@@ -7,3 +7,6 @@
 ## 1.0.0
 * Provide anmiteToIndex
 * Integrate pull_to_refresh
+
+## 1.0.2
+* Add initIndex,initOffset and initOffsetBasedOnBottom

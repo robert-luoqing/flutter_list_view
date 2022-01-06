@@ -31,7 +31,18 @@ class FlutterListViewDelegate extends SliverChildDelegate {
       this.onItemSticky,
       this.onItemHeight,
       this.preferItemHeight = 50,
-      this.firstItemAlign = FirstItemAlign.start});
+      this.firstItemAlign = FirstItemAlign.start,
+      this.initIndex = 0,
+      this.initOffset = 0.0,
+      this.initOffsetBasedOnBottom = false});
+
+  /// When childCount from 0 to non-zore, the [initIndex] will effect,
+  /// When initIndex changed, if child count is not 0, it also effect
+  /// [initOffset] is scroll to index and the distance from top or bottom based
+  /// on [initOffsetBasedOnBottom]
+  final int initIndex;
+  final double initOffset;
+  final bool initOffsetBasedOnBottom;
 
   /// When item is not enough fill one viewport. Where is the items shoule align to
   /// For example: if reverse is false,
