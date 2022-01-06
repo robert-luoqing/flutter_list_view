@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_list_view/flutter_list_view.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +17,7 @@ class _JumpToIndexPageState extends State<JumpToIndexPage> {
   List<int> data = [];
   @override
   initState() {
-    for (var i = 0; i < 1000; i++) {
+    for (var i = 0; i < 100000; i++) {
       data.add(i);
     }
     super.initState();
@@ -56,14 +58,46 @@ class _JumpToIndexPageState extends State<JumpToIndexPage> {
             child: FlutterListView(
                 controller: controller,
                 delegate: FlutterListViewDelegate(
-                  (BuildContext context, int index) => Container(
-                    color: Colors.white,
-                    child: ListTile(title: Text('List Item ${data[index]}')),
-                  ),
+                  (BuildContext context, int index) => Item(text: data[index]),
                   childCount: data.length,
                 )),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class Item extends StatefulWidget {
+  const Item({Key? key, required this.text}) : super(key: key);
+  final int text;
+  @override
+  _ItemState createState() => _ItemState();
+}
+
+class _ItemState extends State<Item> {
+  double height = 40.0;
+  Color? color = Colors.white;
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          var randomNum = Random().nextInt(100000);
+          color = Colors.lightBlue[100 * (randomNum % 9)];
+        });
+      },
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        height: height,
+        child: Container(
+            color: color,
+            child: ListTile(title: Text('List Item ${widget.text}'))),
       ),
     );
   }

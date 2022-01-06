@@ -23,6 +23,7 @@ class FlutterListViewRender extends RenderSliver
 
   /// [_trackedNextStickyElement] is evaluate in performLayout and used it paint
   FlutterListViewRenderData? _trackedNextStickyElement;
+  List<FlutterListViewRenderData> paintedElements = [];
 
   @override
   void setupParentData(RenderObject child) {
@@ -120,6 +121,25 @@ class FlutterListViewRender extends RenderSliver
     /// We need correct scrollOffset
     double compensationScroll = 0;
 
+    /// Relayout these elements, avoid exception when some child need relayout
+    if (childManager.renderedElements.isNotEmpty) {
+      double accumulateOffset = childManager.renderedElements[0].offset;
+      for (var renderedElement in childManager.renderedElements) {
+        RenderBox child = renderedElement.element.renderObject! as RenderBox;
+        child.layout(childConstraints, parentUsesSize: true);
+        var itemHeight = child.size.height;
+
+        childManager.updateElementPosition2(
+          renderedElement,
+          offset: accumulateOffset,
+          height: itemHeight,
+        );
+
+        accumulateOffset += itemHeight;
+      }
+    }
+
+    /// Construct the element before exist element
     while (true) {
       FlutterListViewRenderData? spElement;
       invokeLayoutCallback((constraints) {
@@ -132,7 +152,7 @@ class FlutterListViewRender extends RenderSliver
       var itemHeight = child.size.height;
       compensationScroll += childManager.updateElementPosition(
           spEle: spElement!,
-          height: itemHeight,
+          newHeight: itemHeight,
           needUpdateNextElementOffset: true);
     }
 
@@ -149,7 +169,7 @@ class FlutterListViewRender extends RenderSliver
       var itemHeight = child.size.height;
       childManager.updateElementPosition(
           spEle: spElement!,
-          height: itemHeight,
+          newHeight: itemHeight,
           needUpdateNextElementOffset: false);
     }
 
@@ -200,11 +220,6 @@ class FlutterListViewRender extends RenderSliver
       from: firstRenderChildOffset,
       to: endRenderChildOffset,
     );
-    // var paintExtent = viewportHeight;
-    // if (paintExtent > constraints.remainingPaintExtent) {
-    //   cacheExtent = constraints.remainingPaintExtent;
-    // }
-    // cacheExtent = cacheExtent;
 
     final double targetEndScrollOffsetForPaint =
         constraints.scrollOffset + constraints.remainingPaintExtent;
@@ -245,7 +260,7 @@ class FlutterListViewRender extends RenderSliver
     var itemHeight = child.size.height;
     childManager.updateElementPosition(
         spEle: chatElem,
-        height: itemHeight,
+        newHeight: itemHeight,
         needUpdateNextElementOffset: false);
 
     var scrollDy = itemDy - indexShoudBeJumpOffset;
@@ -297,7 +312,7 @@ class FlutterListViewRender extends RenderSliver
           var itemHeight = child.size.height;
           childManager.updateElementPosition(
               spEle: chatElem,
-              height: itemHeight,
+              newHeight: itemHeight,
               needUpdateNextElementOffset: false);
 
           _isAdjustOperation = true;
@@ -378,7 +393,7 @@ class FlutterListViewRender extends RenderSliver
           var itemHeight = child.size.height;
           childManager.updateElementPosition(
               spEle: prevStickyElement!,
-              height: itemHeight,
+              newHeight: itemHeight,
               needUpdateNextElementOffset: false);
         } else {
           if (childManager.stickyElement != prevStickyElement) {
@@ -452,7 +467,7 @@ class FlutterListViewRender extends RenderSliver
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    // print("-------offset: ${constraints.scrollOffset}");
+    paintedElements.clear();
     var renderedElements = childManager.renderedElements;
     if (renderedElements.isEmpty) return;
 
@@ -524,6 +539,7 @@ class FlutterListViewRender extends RenderSliver
             height: child.size.height));
         if (renderElement != childManager.stickyElement) {
           context.paintChild(child, childOffset);
+          paintedElements.add(renderElement);
           if (renderElement == _trackedNextStickyElement) {
             nextStickyOffset = normalChildOffset;
           }
@@ -537,9 +553,11 @@ class FlutterListViewRender extends RenderSliver
       if (nextStickyOffset == null ||
           nextStickyOffset.dy > stickyRenderObj.size.height) {
         context.paintChild(stickyRenderObj, offset);
+        paintedElements.add(childManager.stickyElement!);
       } else {
         var stickyOffsetDy = nextStickyOffset.dy - stickyRenderObj.size.height;
         context.paintChild(stickyRenderObj, Offset(0, stickyOffsetDy));
+        paintedElements.add(childManager.stickyElement!);
       }
     }
 
@@ -566,6 +584,14 @@ class FlutterListViewRender extends RenderSliver
       visitor(stickyElement.element.renderObject!);
     }
   }
+
+  // @override
+  // void visitChildrenForSemantics(RenderObjectVisitor visitor) {
+  //   // super.visitChildren(visitor);
+  //   for (var item in paintedElements) {
+  //     visitor(item.element.renderObject!);
+  //   }
+  // }
 
   @override
   double childMainAxisPosition(RenderBox child) {

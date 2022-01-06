@@ -17,3 +17,6 @@
 
 ## 1.0.4
 * Correct sticky header may not response the gesture event
+
+## 1.0.5
+* Fix the exception when change size of child

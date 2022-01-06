@@ -376,16 +376,11 @@ class FlutterListViewElement extends RenderObjectElement {
   /// 返回新的与旧的差别
   double updateElementPosition(
       {required FlutterListViewRenderData spEle,
-      required double height,
+      required double newHeight,
       required bool needUpdateNextElementOffset}) {
-    var oldHeight = spEle.height;
+    var diff =
+        updateElementPosition2(spEle, offset: spEle.offset, height: newHeight);
 
-    spEle.height = height;
-    final parentData = spEle.element.renderObject!.parentData!
-        as SliverMultiBoxAdaptorParentData;
-
-    var diff = height - oldHeight;
-    _totalItemHeight += diff;
     // 更新所有后面的offset;
     if (needUpdateNextElementOffset) {
       for (var i = 1; i < _renderedElements.length; i++) {
@@ -397,6 +392,22 @@ class FlutterListViewElement extends RenderObjectElement {
       }
     }
 
+    return diff;
+  }
+
+  /// 返回新的与旧的差别
+  double updateElementPosition2(
+    FlutterListViewRenderData spEle, {
+    required double offset,
+    required double height,
+  }) {
+    var oldHeight = spEle.height;
+    var diff = height - oldHeight;
+    _totalItemHeight += diff;
+    spEle.offset = offset;
+    spEle.height = height;
+    final parentData = spEle.element.renderObject!.parentData!
+        as SliverMultiBoxAdaptorParentData;
     parentData.layoutOffset = spEle.offset;
     setItemHeight(getKeyByItemIndex(spEle.index), height);
     return diff;
