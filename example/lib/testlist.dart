@@ -23,6 +23,14 @@ class _TestListPageState extends State<TestListPage> {
     for (var i = 0; i < 40; i++) {
       data.add(i);
     }
+
+    flutterListViewController.onPaintItemPositionsCallback =
+        (height, positions) {
+      for (var pos in positions) {
+        print("index:${pos.index} offset:${pos.offset}");
+      }
+    };
+
     super.initState();
   }
 

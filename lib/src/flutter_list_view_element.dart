@@ -191,10 +191,10 @@ class FlutterListViewElement extends RenderObjectElement {
       double widgetHeight, List<FlutterListViewItemPosition> paintElements) {
     try {
       WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
-        if (widget.controller != null &&
-            widget.controller!.onPaintItemPositionsCallback != null) {
-          widget.controller!.onPaintItemPositionsCallback!(
-              widgetHeight, paintElements);
+        var onPaintItemPositionsCallback =
+            widget.controller?.onPaintItemPositionsCallback;
+        if (onPaintItemPositionsCallback != null) {
+          onPaintItemPositionsCallback(widgetHeight, paintElements);
         }
       });
     } catch (e, s) {
