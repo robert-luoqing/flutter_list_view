@@ -50,22 +50,28 @@ class _StickyHeaderState extends State<StickyHeader> {
   }
 
   Widget _renderHeader(String text) {
-    return Container(
-      color: const Color(0xFFF3F4F5),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 18, color: Color(0xFF767676)),
-        ),
-      ),
-    );
+    return GestureDetector(
+        onTap: () {
+          print("header clicked $text");
+        },
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          color: const Color(0xFFF3F4F5),
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 18, color: Color(0xFF767676)),
+            ),
+          ),
+        ));
   }
 
   Widget _renderItem(CountryModel itemData) {
     return GestureDetector(
       onTap: () {
-        print("clicked ${itemData.name}");
+        print("item clicked ${itemData.name}");
       },
       behavior: HitTestBehavior.opaque,
       child: Padding(
