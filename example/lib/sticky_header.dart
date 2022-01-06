@@ -63,10 +63,16 @@ class _StickyHeaderState extends State<StickyHeader> {
   }
 
   Widget _renderItem(CountryModel itemData) {
-    return Padding(
-        padding: const EdgeInsets.only(right: 12.0),
-        child: ListTile(
-            title: Text(itemData.name), trailing: Text(itemData.phoneCode)));
+    return GestureDetector(
+      onTap: () {
+        print("clicked ${itemData.name}");
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+          padding: const EdgeInsets.only(right: 12.0),
+          child: ListTile(
+              title: Text(itemData.name), trailing: Text(itemData.phoneCode))),
+    );
   }
 
   @override

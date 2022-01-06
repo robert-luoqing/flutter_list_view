@@ -11,3 +11,6 @@
 ## 1.0.2
 * Add initIndex,initOffset and initOffsetBasedOnBottom
 * Add Element Positions Callback
+
+## 1.0.3
+* Correct the items did not response the gesture event

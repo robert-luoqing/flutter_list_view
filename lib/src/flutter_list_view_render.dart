@@ -6,7 +6,7 @@ import 'flutter_list_view_model.dart';
 import 'flutter_list_view_render_data.dart';
 
 class FlutterListViewRender extends RenderSliver
-    with RenderSliverWithKeepAliveMixin {
+    with RenderSliverWithKeepAliveMixin, RenderSliverHelpers {
   FlutterListViewRender({
     required this.childManager,
   });
@@ -627,6 +627,32 @@ class FlutterListViewRender extends RenderSliver
     } else {
       applyPaintTransformForBoxChild(child, transform);
     }
+  }
+
+  @override
+  bool hitTestChildren(SliverHitTestResult result,
+      {required double mainAxisPosition, required double crossAxisPosition}) {
+    final BoxHitTestResult boxResult = BoxHitTestResult.wrap(result);
+    for (var i = childManager.renderedElements.length - 1; i >= 0; i--) {
+      var child =
+          childManager.renderedElements[i].element.renderObject as RenderBox;
+      if (hitTestBoxChild(boxResult, child,
+          mainAxisPosition: mainAxisPosition,
+          crossAxisPosition: crossAxisPosition)) {
+        return true;
+      }
+    }
+
+    return false;
+    // RenderBox? child = lastChild;
+
+    // while (child != null) {
+    //   if (hitTestBoxChild(boxResult, child,
+    //       mainAxisPosition: mainAxisPosition,
+    //       crossAxisPosition: crossAxisPosition)) return true;
+    //   child = childBefore(child);
+    // }
+    // return false;
   }
 
   bool _getRightWayUp(SliverConstraints constraints) {
