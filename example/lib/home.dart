@@ -47,6 +47,16 @@ class _HomePageState extends State<HomePage> {
                 child: const Text("Jump to index")),
             ElevatedButton(
                 onPressed: () {
+                  Navigator.of(context).pushNamed("/initJumpPage");
+                },
+                child: const Text("Initilize Jump")),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed("/initJumpAfterLoadDataPage");
+                },
+                child: const Text("Initilize Jump after load data")),
+            ElevatedButton(
+                onPressed: () {
                   Navigator.of(context).pushNamed("/testListPage");
                 },
                 child: const Text("Test List")),

@@ -1,4 +1,6 @@
 import 'chat.dart';
+import 'init_jump.dart';
+import 'init_jump_after_loaddata.dart';
 import 'jump_to_index.dart';
 import 'pull_to_refresh_list.dart';
 import 'sticky_header.dart';
@@ -23,5 +25,8 @@ class SectionViewRoute {
     "/stickyHeaderWithRefresh": (context) => const StickyHeaderWithRefresh(),
     "/jumpToIndexPage": (context) => const JumpToIndexPage(),
     "/chat": (context) => const Chat(),
+    "/initJumpPage": (context) => const InitJumpPage(),
+    "/initJumpAfterLoadDataPage": (context) =>
+        const InitJumpAfterLoadDataPage(),
   };
 }

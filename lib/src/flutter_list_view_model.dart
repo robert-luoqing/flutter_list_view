@@ -11,3 +11,11 @@ class FlutterListViewGrowDirectionInfo {
   final bool addExtent;
   final AxisDirection axisDirection;
 }
+
+class FlutterListViewItemPosition {
+  FlutterListViewItemPosition(
+      {required this.index, required this.offset, required this.height});
+  final int index;
+  final double offset;
+  final double height;
+}

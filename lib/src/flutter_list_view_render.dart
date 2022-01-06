@@ -461,6 +461,7 @@ class FlutterListViewRender extends RenderSliver
     var growInfo = _getGrowDirectionInfo(offset);
     firstPainItemInViewport = null;
     Offset? nextStickyOffset;
+    var paintElements = <FlutterListViewItemPosition>[];
     for (var renderElement in renderedElements) {
       RenderBox child = renderElement.element.renderObject as RenderBox;
       final double mainAxisDelta = childMainAxisPosition(child);
@@ -516,6 +517,11 @@ class FlutterListViewRender extends RenderSliver
             }
           }
         }
+
+        paintElements.add(FlutterListViewItemPosition(
+            index: renderElement.index,
+            offset: childOffset.dy,
+            height: child.size.height));
         if (renderElement != childManager.stickyElement) {
           context.paintChild(child, childOffset);
           if (renderElement == _trackedNextStickyElement) {
@@ -536,6 +542,10 @@ class FlutterListViewRender extends RenderSliver
         context.paintChild(stickyRenderObj, Offset(0, stickyOffsetDy));
       }
     }
+
+    // Nofify the items has repaint and offset/height may changed
+    childManager.notifyPaintItemPositionsCallback(
+        constraints.viewportMainAxisExtent, paintElements);
 
     currentScrollOffset = constraints.scrollOffset;
     currentViewportHeight = constraints.viewportMainAxisExtent;

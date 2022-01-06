@@ -1,11 +1,16 @@
 import 'package:flutter/widgets.dart';
 
 import 'flutter_list_view_element.dart';
+import 'flutter_list_view_model.dart';
 
-// typedef FlutterSliverListControllerOnStickyChanged = void Function(int index);
+typedef FlutterSliverListControllerOnPaintItemPositionCallback = void Function(
+    double widgetHeight, List<FlutterListViewItemPosition> positions);
 
 class FlutterSliverListController {
   final ValueNotifier<int?> stickyIndex = ValueNotifier<int?>(null);
+
+  FlutterSliverListControllerOnPaintItemPositionCallback?
+      onPaintItemPositionsCallback;
 
   FlutterListViewElement? _listView;
   jumpToIndex(int index,

@@ -1,3 +1,4 @@
+import '../flutter_list_view.dart';
 import 'flutter_list_view_delegate.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,29 +16,45 @@ class FlutterListViewElement extends RenderObjectElement {
         widget.controller!.stickyIndex.value = stickyElement!.index;
       }
     }
+
+    _handleInitIndex(widget.delegate, null);
   }
 
-  /// If the field is true, then next layout will remove all chilrend first
-  /// Then create new children according to scrolloffset
-  bool markAsInvalid = true;
+  _handleInitIndex(
+      SliverChildDelegate newDelegate, SliverChildDelegate? oldDelegate) {
+    int oldInitIndex = 0;
+    int newInitIndex = 0;
+    int oldChildCount = 0;
+    int newChildCount = 0;
+    double newInitOffset = 0.0;
+    bool newInitOffsetBasedOnBottom = false;
 
-  /// [indexShoudBeJumpTo] is mean not jump to
-  int? indexShoudBeJumpTo;
-  double indexShoudBeJumpOffset = 0.0;
+    if (oldDelegate != null && oldDelegate is FlutterListViewDelegate) {
+      oldInitIndex = oldDelegate.initIndex;
+      oldChildCount = oldDelegate.childCount ?? 99999999;
+    }
+    if (newDelegate is FlutterListViewDelegate) {
+      newInitIndex = newDelegate.initIndex;
+      newChildCount = newDelegate.childCount ?? 99999999;
+      newInitOffset = newDelegate.initOffset;
+      newInitOffsetBasedOnBottom = newDelegate.initOffsetBasedOnBottom;
+    }
 
-  /// [offsetBasedOnBottom] only apply to jumpTo and comunicate with render
-  bool offsetBasedOnBottom = false;
+    bool needJump = false;
+    if (newChildCount > 0) {
+      if (oldInitIndex != newInitIndex && newInitIndex > 0) {
+        needJump = true;
+      } else if (newInitIndex > 0 && oldChildCount == 0) {
+        needJump = true;
+      }
+    }
 
-  /// When [supressElementGenerate] is true, then notify render don't need
-  /// create and drop element, just kepp current element
-  bool supressElementGenerate = false;
-
-  @override
-  FlutterSliverList get widget => super.widget as FlutterSliverList;
-
-  ScrollableState? get parentScrollableState {
-    ScrollableState? scrollable = Scrollable.of(this);
-    return scrollable;
+    if (needJump) {
+      indexShoudBeJumpTo = newInitIndex;
+      indexShoudBeJumpOffset = newInitOffset;
+      offsetBasedOnBottom = newInitOffsetBasedOnBottom;
+      markAsInvalid = true;
+    }
   }
 
   @override
@@ -61,8 +78,32 @@ class FlutterListViewElement extends RenderObjectElement {
     if (newDelegate != oldDelegate &&
         (newDelegate.runtimeType != oldDelegate.runtimeType ||
             newDelegate.shouldRebuild(oldDelegate))) performRebuild();
+    _handleInitIndex(newDelegate, oldDelegate);
     markAsInvalid = true;
     renderObject.markNeedsLayout();
+  }
+
+  /// If the field is true, then next layout will remove all chilrend first
+  /// Then create new children according to scrolloffset
+  bool markAsInvalid = true;
+
+  /// [indexShoudBeJumpTo] is mean not jump to
+  int? indexShoudBeJumpTo;
+  double indexShoudBeJumpOffset = 0.0;
+
+  /// [offsetBasedOnBottom] only apply to jumpTo and comunicate with render
+  bool offsetBasedOnBottom = false;
+
+  /// When [supressElementGenerate] is true, then notify render don't need
+  /// create and drop element, just kepp current element
+  bool supressElementGenerate = false;
+
+  @override
+  FlutterSliverList get widget => super.widget as FlutterSliverList;
+
+  ScrollableState? get parentScrollableState {
+    ScrollableState? scrollable = Scrollable.of(this);
+    return scrollable;
   }
 
   /// Rendered child element, The elements which only fill one view port
@@ -144,6 +185,21 @@ class FlutterListViewElement extends RenderObjectElement {
         }
       }
     });
+  }
+
+  void notifyPaintItemPositionsCallback(
+      double widgetHeight, List<FlutterListViewItemPosition> paintElements) {
+    try {
+      WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
+        if (widget.controller != null &&
+            widget.controller!.onPaintItemPositionsCallback != null) {
+          widget.controller!.onPaintItemPositionsCallback!(
+              widgetHeight, paintElements);
+        }
+      });
+    } catch (e, s) {
+      print("notifyPaintItemPositionsCallback error $e, $s");
+    }
   }
 
   FirstItemAlign get firstItemAlign {

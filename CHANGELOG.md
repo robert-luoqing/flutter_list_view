@@ -10,3 +10,4 @@
 
 ## 1.0.2
 * Add initIndex,initOffset and initOffsetBasedOnBottom
+* Add Element Position Callback
