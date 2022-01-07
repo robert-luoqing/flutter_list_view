@@ -210,11 +210,15 @@ class FlutterListViewRender extends RenderSliver
       endRenderChildOffset = lastElement.offset + lastElement.height;
     }
 
-    final double paintExtent = calculatePaintOffset(
-      constraints,
-      from: firstRenderChildOffset,
-      to: endRenderChildOffset,
-    );
+    double paintExtent = constraints.viewportMainAxisExtent;
+    var fullPaintExtent = false;
+    if (fullPaintExtent == false) {
+      paintExtent = calculatePaintOffset(
+        constraints,
+        from: firstRenderChildOffset,
+        to: endRenderChildOffset,
+      );
+    }
     final double cacheExtent = calculateCacheOffset(
       constraints,
       from: firstRenderChildOffset,
@@ -477,6 +481,13 @@ class FlutterListViewRender extends RenderSliver
     firstPainItemInViewport = null;
     Offset? nextStickyOffset;
     var paintElements = <FlutterListViewItemPosition>[];
+    // If all element height is not enough fill full screen, all element must be show
+    var showAllEmenets = false;
+    if (renderedElements.isNotEmpty &&
+        renderedElements.last.offset + renderedElements.last.height <
+            constraints.viewportMainAxisExtent) {
+      showAllEmenets = true;
+    }
     for (var renderElement in renderedElements) {
       RenderBox child = renderElement.element.renderObject as RenderBox;
       final double mainAxisDelta = childMainAxisPosition(child);
@@ -508,8 +519,9 @@ class FlutterListViewRender extends RenderSliver
 
       // If the child's visible interval (mainAxisDelta, mainAxisDelta + paintExtentOf(child))
       // does not intersect the paint extent interval (0, constraints.remainingPaintExtent), it's hidden.
-      if (mainAxisDelta < constraints.remainingPaintExtent &&
-          mainAxisDelta + child.size.height > 0) {
+      if ((mainAxisDelta < constraints.remainingPaintExtent &&
+              mainAxisDelta + child.size.height > 0) ||
+          showAllEmenets) {
         if (firstPainItemInViewport == null) {
           firstPainItemInViewport = renderElement;
           firstPainItemOffset = normalChildOffset;

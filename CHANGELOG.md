@@ -20,3 +20,6 @@
 
 ## 1.0.5
 * Fix the exception when change size of child
+
+## 1.0.7
+* Fix drag down item will be clip if the items can't fill full screen.
