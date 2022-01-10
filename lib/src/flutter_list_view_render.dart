@@ -63,6 +63,7 @@ class FlutterListViewRender extends RenderSliver
   }
 
   /// The field will indicate next layout will not remove out of scope elements
+  /// true: only need correct layout
   bool _isAdjustOperation = false;
 
   @override
@@ -89,9 +90,10 @@ class FlutterListViewRender extends RenderSliver
       childManager.markAsInvalid = false;
       childManager.calcTotalItemHeight();
 
-      invokeLayoutCallback((constraints) {
-        childManager.removeAllChildren();
-      });
+      childManager.removeAllChildrenToCachedElements();
+      // invokeLayoutCallback((constraints) {
+      //   childManager.removeAllChildren();
+      // });
 
       if (childManager.indexShoudBeJumpTo != null) {
         final jumpIndex = childManager.indexShoudBeJumpTo!;
@@ -111,10 +113,8 @@ class FlutterListViewRender extends RenderSliver
       }
     }
 
-    List<Element> cachedElements = [];
     if (_isAdjustOperation == false) {
-      cachedElements =
-          childManager.removeOutOfScopeElements(scrollOffset, viewportHeight);
+      childManager.removeOutOfScopeElements(scrollOffset, viewportHeight);
     }
 
     /// It the prev element's height not same with prefer's
@@ -143,8 +143,8 @@ class FlutterListViewRender extends RenderSliver
     while (true) {
       FlutterListViewRenderData? spElement;
       invokeLayoutCallback((constraints) {
-        spElement = childManager.constructPrevElement(
-            scrollOffset, viewportHeight, cachedElements);
+        spElement =
+            childManager.constructPrevElement(scrollOffset, viewportHeight);
       });
       if (spElement == null) break;
       RenderBox child = spElement!.element.renderObject! as RenderBox;
@@ -159,8 +159,8 @@ class FlutterListViewRender extends RenderSliver
     while (true) {
       FlutterListViewRenderData? spElement;
       invokeLayoutCallback((constraints) {
-        spElement = childManager.constructNextElement(
-            scrollOffset, viewportHeight, cachedElements);
+        spElement =
+            childManager.constructNextElement(scrollOffset, viewportHeight);
       });
 
       if (spElement == null) break;
@@ -173,12 +173,9 @@ class FlutterListViewRender extends RenderSliver
           needUpdateNextElementOffset: false);
     }
 
-    for (var item in cachedElements) {
-      invokeLayoutCallback((constraints) {
-        childManager.removeChildElement(item);
-      });
-    }
-
+    // 这段代码用于以下情况
+    // 如果记录数为1000, 跳转到每1000条记录时下面会出现空白，并会返弹回去
+    // 去掉这个情况，所以加上了这些
     if (_isAdjustOperation) {
       var maxRemainArea = childManager.totalItemHeight - viewportHeight;
       if (childManager.totalItemHeight <= viewportHeight &&
@@ -200,6 +197,15 @@ class FlutterListViewRender extends RenderSliver
 
     /// find sticky item and construct it
     _determineStickyElement(childConstraints);
+
+    if (childManager.cachedElements.isNotEmpty) {
+      invokeLayoutCallback((constraints) {
+        for (var item in childManager.cachedElements) {
+          childManager.removeChildElement(item.element);
+        }
+      });
+      childManager.cachedElements.clear();
+    }
 
     double firstRenderChildOffset = 0;
     double endRenderChildOffset = 0;
@@ -256,8 +262,7 @@ class FlutterListViewRender extends RenderSliver
 
     late FlutterListViewRenderData chatElem;
     invokeLayoutCallback((constraints) {
-      chatElem =
-          childManager.constructOneIndexElement(jumpIndex, itemDy, [], true);
+      chatElem = childManager.constructOneIndexElement(jumpIndex, itemDy, true);
     });
     RenderBox child = chatElem.element.renderObject! as RenderBox;
     child.layout(childConstraints, parentUsesSize: true);
@@ -300,6 +305,7 @@ class FlutterListViewRender extends RenderSliver
       /// To resave performance. we will found on a range
       var matchedIndex = findIndexByKeyAndOldIndex(
           firstPainItemInViewport!.itemKey, firstPainItemInViewport!.index);
+
       if (matchedIndex != null) {
         // Calculate and correct the value
         var itemDy = childManager.getScrollOffsetByIndex(matchedIndex);
@@ -309,7 +315,7 @@ class FlutterListViewRender extends RenderSliver
           late FlutterListViewRenderData chatElem;
           invokeLayoutCallback((constraints) {
             chatElem = childManager.constructOneIndexElement(
-                matchedIndex, itemDy, [], true);
+                matchedIndex, itemDy, true);
           });
           RenderBox child = chatElem.element.renderObject! as RenderBox;
           child.layout(childConstraints, parentUsesSize: true);
@@ -318,7 +324,6 @@ class FlutterListViewRender extends RenderSliver
               spEle: chatElem,
               newHeight: itemHeight,
               needUpdateNextElementOffset: false);
-
           _isAdjustOperation = true;
           geometry = SliverGeometry(
               scrollExtent: childManager.totalItemHeight,
@@ -389,7 +394,7 @@ class FlutterListViewRender extends RenderSliver
           removedSticky = childManager.stickyElement;
           invokeLayoutCallback((constraints) {
             prevStickyElement = childManager.constructOneIndexElement(
-                prevStickyIndex!, 0, [], false);
+                prevStickyIndex!, 0, false);
           });
           RenderBox child =
               prevStickyElement!.element.renderObject! as RenderBox;
@@ -595,15 +600,11 @@ class FlutterListViewRender extends RenderSliver
     if (stickyElement != null && stickyElementHasVisited == false) {
       visitor(stickyElement.element.renderObject!);
     }
-  }
 
-  // @override
-  // void visitChildrenForSemantics(RenderObjectVisitor visitor) {
-  //   // super.visitChildren(visitor);
-  //   for (var item in paintedElements) {
-  //     visitor(item.element.renderObject!);
-  //   }
-  // }
+    for (var item in childManager.cachedElements) {
+      visitor(item.element.renderObject!);
+    }
+  }
 
   @override
   double childMainAxisPosition(RenderBox child) {
@@ -655,6 +656,10 @@ class FlutterListViewRender extends RenderSliver
     }
     if (stickyIsInRenderedElements == false && stickyElement != null) {
       stickyElement.element.renderObject!.detach();
+    }
+
+    for (var element in childManager.cachedElements) {
+      element.element.renderObject!.detach();
     }
   }
 

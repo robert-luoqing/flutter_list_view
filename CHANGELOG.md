@@ -23,3 +23,6 @@
 
 ## 1.0.7
 * Fix drag down item will be clip if the items can't fill full screen.
+
+## 1.0.8
+* When reuse exist element, the same key will be priority reused it. avoid update one item twice in very short time.

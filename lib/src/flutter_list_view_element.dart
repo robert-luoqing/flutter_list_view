@@ -1,12 +1,10 @@
 import '../flutter_list_view.dart';
-import 'flutter_list_view_delegate.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import 'flutter_list_view_render.dart';
 import 'flutter_list_view_render_data.dart';
-import 'flutter_sliver_list.dart';
 
 class FlutterListViewElement extends RenderObjectElement {
   FlutterListViewElement(FlutterSliverList widget) : super(widget) {
@@ -118,6 +116,9 @@ class FlutterListViewElement extends RenderObjectElement {
 
   /// It will store the height of item which has rendered or provide by feedback
   final Map<String, double> _itemHeights = {};
+
+  /// The cache'd element. These element will be reused
+  List<FlutterListViewRenderData> cachedElements = [];
 
   /// 总的item的高度
   double _totalItemHeight = 0;
@@ -290,9 +291,7 @@ class FlutterListViewElement extends RenderObjectElement {
 
   /// 用于找到并构造当前屏的Element
   /// [scrollOffset]为当前scroll的位置
-  List<Element> removeOutOfScopeElements(
-      double scrollOffset, double viewportHeight) {
-    List<Element> removedElements = [];
+  void removeOutOfScopeElements(double scrollOffset, double viewportHeight) {
     double cacheExtent = viewportHeight;
     double startOffset = scrollOffset - cacheExtent;
     if (startOffset < 0) {
@@ -307,7 +306,7 @@ class FlutterListViewElement extends RenderObjectElement {
       var item = _renderedElements[0];
       if ((item.offset + item.height) < startOffset) {
         _renderedElements.removeAt(0);
-        removedElements.add(item.element);
+        cachedElements.add(item);
         if (item == stickyElement) {
           stickyElement = null;
         }
@@ -322,7 +321,7 @@ class FlutterListViewElement extends RenderObjectElement {
       var item = _renderedElements[length - 1];
       if (item.offset > endOffset) {
         _renderedElements.removeAt(length - 1);
-        removedElements.add(item.element);
+        cachedElements.add(item);
         if (item == stickyElement) {
           stickyElement = null;
         }
@@ -330,15 +329,10 @@ class FlutterListViewElement extends RenderObjectElement {
         break;
       }
     }
-
-    return removedElements;
   }
 
   FlutterListViewRenderData constructOneIndexElement(
-      int index,
-      double itemOffset,
-      List<Element> cachedElements,
-      bool needInsertToRenderElement) {
+      int index, double itemOffset, bool needInsertToRenderElement) {
     var result = _createOrReuseElement(cachedElements, index);
     result.offset = itemOffset;
     if (needInsertToRenderElement) {
@@ -349,10 +343,7 @@ class FlutterListViewElement extends RenderObjectElement {
   }
 
   FlutterListViewRenderData? constructPrevElement(
-    double scrollOffset,
-    double viewportHeight,
-    List<Element> cachedElements,
-  ) {
+      double scrollOffset, double viewportHeight) {
     double cacheExtent = viewportHeight;
     double startOffset = scrollOffset - cacheExtent;
     if (startOffset < 0) {
@@ -414,11 +405,21 @@ class FlutterListViewElement extends RenderObjectElement {
   }
 
   FlutterListViewRenderData _createOrReuseElement(
-      List<Element> cacheds, int index) {
+      List<FlutterListViewRenderData> cacheds, int index) {
     Element? newElement;
     if (cacheds.isNotEmpty) {
-      newElement = cacheds[0];
-      cacheds.removeAt(0);
+      /// Priority reuse same key elements
+      var itemKey = getKeyByItemIndex(index);
+      var matchedIndex = 0;
+      for (var i = 0; i < cacheds.length; i++) {
+        if (cacheds[i].itemKey == itemKey) {
+          matchedIndex = i;
+          break;
+        }
+      }
+
+      newElement = cacheds[matchedIndex].element;
+      cacheds.removeAt(matchedIndex);
       newElement = updateChild(newElement, _build(index), index);
     } else {
       newElement = createChild2(index);
@@ -448,10 +449,7 @@ class FlutterListViewElement extends RenderObjectElement {
   }
 
   FlutterListViewRenderData? constructNextElement(
-    double scrollOffset,
-    double viewportHeight,
-    List<Element> cachedElements,
-  ) {
+      double scrollOffset, double viewportHeight) {
     double cacheExtent = viewportHeight;
     double endOffset = scrollOffset + viewportHeight + cacheExtent;
 
@@ -601,6 +599,10 @@ class FlutterListViewElement extends RenderObjectElement {
     if (stickyElement != null && stickyElementHasVisited == false) {
       visitor(stickyElement!.element);
     }
+
+    for (var item in cachedElements) {
+      visitor(item.element);
+    }
   }
 
   @override
@@ -650,11 +652,32 @@ class FlutterListViewElement extends RenderObjectElement {
         }
       }
       _renderedElements.clear();
-      if (stickyElement != null) {
-        removeChildElement(stickyElement!.element);
-      }
-      stickyElement = null;
     }
+
+    if (stickyElement != null) {
+      removeChildElement(stickyElement!.element);
+    }
+    stickyElement = null;
+
+    for (var item in cachedElements) {
+      removeChildElement(item.element);
+    }
+    cachedElements.clear();
+  }
+
+  void removeAllChildrenToCachedElements() {
+    for (var item in _renderedElements) {
+      cachedElements.add(item);
+      if (item == stickyElement) {
+        stickyElement = null;
+      }
+    }
+    _renderedElements.clear();
+
+    if (stickyElement != null) {
+      cachedElements.add(stickyElement!);
+    }
+    stickyElement = null;
   }
 
   @override
