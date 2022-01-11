@@ -60,6 +60,12 @@ class _HomePageState extends State<HomePage> {
                   Navigator.of(context).pushNamed("/testListPage");
                 },
                 child: const Text("Test List")),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context)
+                      .pushNamed("/flutterListViewPerformance");
+                },
+                child: const Text("Test Flutter List Performance")),
           ],
         ),
       ),

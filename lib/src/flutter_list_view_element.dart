@@ -272,11 +272,47 @@ class FlutterListViewElement extends RenderObjectElement {
 
   /// 只有当total count发生变化或第一次时，会调用
   void calcTotalItemHeight() {
-    double height = 0;
-    for (var i = 0; i < childCount; i++) {
-      height += getItemHeight(getKeyByItemIndex(i), i);
+    // To enhance performance when childcount more than 1 milloion
+    // Because it will loop 1 milloion times
+    // double height = 0;
+    // for (var i = 0; i < childCount; i++) {
+    //   height += getItemHeight(getKeyByItemIndex(i), i);
+    // }
+    // _totalItemHeight = height;
+
+    // 以下是重写该方法
+    var hasCalced = false;
+    if (widget.delegate is FlutterListViewDelegate) {
+      var chatListDelegate = widget.delegate as FlutterListViewDelegate;
+      if (chatListDelegate.onItemKey != null ||
+          chatListDelegate.onItemHeight != null) {
+        double height = 0;
+        for (var i = 0; i < childCount; i++) {
+          height += getItemHeight(getKeyByItemIndex(i), i);
+        }
+        _totalItemHeight = height;
+        hasCalced = true;
+      }
     }
-    _totalItemHeight = height;
+
+    if (hasCalced == false) {
+      double height = 0;
+      int calcItemCount = 0;
+      for (var index in _itemHeights.keys) {
+        if (int.parse(index) < childCount) {
+          height += _itemHeights[index]!;
+          calcItemCount++;
+        }
+      }
+      var itemHeight = 50.0;
+      if (widget.delegate is FlutterListViewDelegate) {
+        var chatListDelegate = widget.delegate as FlutterListViewDelegate;
+        itemHeight = chatListDelegate.preferItemHeight;
+      }
+
+      height += ((childCount - calcItemCount) * itemHeight);
+      _totalItemHeight = height;
+    }
   }
 
   double getScrollOffsetByIndex(int index) {

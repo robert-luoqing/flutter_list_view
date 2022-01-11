@@ -26,3 +26,12 @@
 
 ## 1.0.8
 * When reuse exist element, the same key will be priority reused it. avoid update one item twice in very short time.
+
+## 1.0.9
+* Resolve performance issue when without onItemHeight and onItemKey and child count more than 1M
+
+## TODO
+* Add horizontal scroll support
+* Add permanent item which will not to be reused and keep in FlutterListView util FlutterListView disposed
+* Add creating items when flutter list view created
+* Add Flutter Key to reference items' element

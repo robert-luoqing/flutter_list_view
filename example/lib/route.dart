@@ -1,4 +1,5 @@
 import 'chat.dart';
+import 'flutter_list_view_performance.dart';
 import 'init_jump.dart';
 import 'init_jump_after_loaddata.dart';
 import 'jump_to_index.dart';
@@ -28,5 +29,7 @@ class SectionViewRoute {
     "/initJumpPage": (context) => const InitJumpPage(),
     "/initJumpAfterLoadDataPage": (context) =>
         const InitJumpAfterLoadDataPage(),
+    "/flutterListViewPerformance": (context) =>
+        const FlutterListViewPerformance(),
   };
 }
