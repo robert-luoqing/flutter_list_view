@@ -67,11 +67,11 @@ class _JumpToIndexPageState extends State<JumpToIndexPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: ElevatedButton(
                     onPressed: () async {
-                      controller.sliverController.animateToIndex(
+                      await controller.sliverController.animateToIndex(
                           int.parse(indexTextController.text),
                           offset: double.parse(offsetTextController.text),
                           offsetBasedOnBottom: alignToBottom,
-                          duration: const Duration(milliseconds: 300),
+                          duration: const Duration(milliseconds: 3000),
                           curve: Curves.ease);
                       await Future.delayed(const Duration(seconds: 1));
                       indexTextController.text =

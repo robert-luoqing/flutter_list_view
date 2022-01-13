@@ -34,7 +34,7 @@
 * Add permanent item which will not to be reused and keep in FlutterListView util FlutterListView disposed
 
 ## 1.1.1
-* Provide option to determine whether or not generate items during scrolling
+* Provide option to determine whether or not generate items during scrolling to make scroll to index more smooth
 
 ## TODO
 * Add horizontal scroll support

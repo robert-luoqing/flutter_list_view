@@ -96,6 +96,12 @@ class FlutterListViewElement extends RenderObjectElement {
   /// create and drop element, just kepp current element
   bool supressElementGenerate = false;
 
+  /// Does it in scrolling when the user invoke animateToIndex
+  /// During scrolling, the item's height will not be save
+  /// Because if save the height, the destination offset will not correct
+  /// It may cause scroll back
+  bool _isInScrolling = false;
+
   @override
   FlutterSliverList get widget => super.widget as FlutterSliverList;
 
@@ -170,11 +176,13 @@ class FlutterListViewElement extends RenderObjectElement {
     }
 
     try {
+      _isInScrolling = true;
       var position = parentScrollableState?.position;
       await position?.animateTo(scrollOffset, duration: duration, curve: curve);
     } catch (e, s) {
       print("error in animateToIndex in flutter list view element, $e, $s");
     } finally {
+      _isInScrolling = false;
       supressElementGenerate = false;
     }
 
@@ -269,7 +277,9 @@ class FlutterListViewElement extends RenderObjectElement {
   }
 
   setItemHeight(String key, double height) {
-    _itemHeights[key] = height;
+    if (!_isInScrolling) {
+      _itemHeights[key] = height;
+    }
   }
 
   String getKeyByItemIndex(int index) {
