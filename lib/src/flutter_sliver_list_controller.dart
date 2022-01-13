@@ -13,22 +13,22 @@ class FlutterSliverListController {
       onPaintItemPositionsCallback;
 
   FlutterListViewElement? _listView;
-  jumpToIndex(int index,
+  void jumpToIndex(int index,
       {double offset = 0, bool offsetBasedOnBottom = false}) {
     if (_listView != null) {
       _listView!.jumpToIndex(index, offset, offsetBasedOnBottom);
     }
   }
 
-  animateToIndex(
+  Future<void> animateToIndex(
     int index, {
     required Duration duration,
     required Curve curve,
     double offset = 0,
     bool offsetBasedOnBottom = false,
-  }) {
+  }) async {
     if (_listView != null) {
-      _listView!.animateToIndex(index,
+      await _listView!.animateToIndex(index,
           offset: offset,
           basedOnBottom: offsetBasedOnBottom,
           duration: duration,

@@ -34,7 +34,9 @@ class FlutterListViewDelegate extends SliverChildDelegate {
       this.firstItemAlign = FirstItemAlign.start,
       this.initIndex = 0,
       this.initOffset = 0.0,
-      this.initOffsetBasedOnBottom = false});
+      this.initOffsetBasedOnBottom = false,
+      this.onIsPermanent,
+      this.isSupressElementGenerate = false});
 
   /// When childCount from 0 to non-zore, the [initIndex] will effect,
   /// When initIndex changed, if child count is not 0, it also effect
@@ -141,6 +143,13 @@ class FlutterListViewDelegate extends SliverChildDelegate {
   ///
   /// Defaults to providing an index for each widget.
   final SemanticIndexCallback semanticIndexCallback;
+
+  /// Query does the item is permanent item
+  /// permanent item will not reused and release util list view disposed
+  final bool Function(String key)? onIsPermanent;
+
+  /// [isSupressElementGenerate] is true, the element will not generated during scroll
+  final bool isSupressElementGenerate;
 
   Widget _createErrorWidget(Object exception, StackTrace stackTrace) {
     final FlutterErrorDetails details = FlutterErrorDetails(

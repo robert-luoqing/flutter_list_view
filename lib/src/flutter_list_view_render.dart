@@ -91,9 +91,6 @@ class FlutterListViewRender extends RenderSliver
       childManager.calcTotalItemHeight();
 
       childManager.removeAllChildrenToCachedElements();
-      // invokeLayoutCallback((constraints) {
-      //   childManager.removeAllChildren();
-      // });
 
       if (childManager.indexShoudBeJumpTo != null) {
         final jumpIndex = childManager.indexShoudBeJumpTo!;
@@ -630,6 +627,7 @@ class FlutterListViewRender extends RenderSliver
     var renderedElements = childManager.renderedElements;
     var stickyElement = childManager.stickyElement;
     var stickyIsInRenderedElements = false;
+    var permanentElements = childManager.permanentElements;
     for (var element in renderedElements) {
       element.element.renderObject!.attach(owner);
       if (element == stickyElement) {
@@ -640,6 +638,10 @@ class FlutterListViewRender extends RenderSliver
     if (stickyIsInRenderedElements == false && stickyElement != null) {
       stickyElement.element.renderObject!.attach(owner);
     }
+
+    for (var key in permanentElements.keys) {
+      permanentElements[key]!.element.renderObject!.attach(owner);
+    }
   }
 
   @override
@@ -647,6 +649,7 @@ class FlutterListViewRender extends RenderSliver
     super.detach();
     var renderedElements = childManager.renderedElements;
     var stickyElement = childManager.stickyElement;
+    var permanentElements = childManager.permanentElements;
     var stickyIsInRenderedElements = false;
     for (var element in renderedElements) {
       element.element.renderObject!.detach();
@@ -660,6 +663,10 @@ class FlutterListViewRender extends RenderSliver
 
     for (var element in childManager.cachedElements) {
       element.element.renderObject!.detach();
+    }
+
+    for (var key in permanentElements.keys) {
+      permanentElements[key]!.element.renderObject!.detach();
     }
   }
 

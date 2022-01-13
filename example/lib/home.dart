@@ -66,6 +66,16 @@ class _HomePageState extends State<HomePage> {
                       .pushNamed("/flutterListViewPerformance");
                 },
                 child: const Text("Test Flutter List Performance")),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed("/listViewPerformance");
+                },
+                child: const Text("Test List Performance")),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed("/permanentItem");
+                },
+                child: const Text("Test Permanent Item")),
           ],
         ),
       ),

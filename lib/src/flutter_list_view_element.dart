@@ -108,17 +108,24 @@ class FlutterListViewElement extends RenderObjectElement {
   /// The elements will be reusable
   /// The order of list it the item sequence shows in UI
   final List<FlutterListViewRenderData> _renderedElements = [];
+  List<FlutterListViewRenderData> get renderedElements => _renderedElements;
+
+  /// permanentElements is used to hold the element not release once created
+  /// And also it will not reused
+  /// [permanentElements] key is the item's key or index
+  final Map<String, FlutterListViewRenderData> _permanentElements = {};
+  Map<String, FlutterListViewRenderData> get permanentElements =>
+      _permanentElements;
 
   /// Current sticky element which show on top of list
   FlutterListViewRenderData? stickyElement;
-
-  List<FlutterListViewRenderData> get renderedElements => _renderedElements;
 
   /// It will store the height of item which has rendered or provide by feedback
   final Map<String, double> _itemHeights = {};
 
   /// The cache'd element. These element will be reused
-  List<FlutterListViewRenderData> cachedElements = [];
+  final List<FlutterListViewRenderData> _cachedElements = [];
+  List<FlutterListViewRenderData> get cachedElements => _cachedElements;
 
   /// 总的item的高度
   double _totalItemHeight = 0;
@@ -156,7 +163,12 @@ class FlutterListViewElement extends RenderObjectElement {
 
     if (scrollOffset < 0) scrollOffset = 0;
 
-    supressElementGenerate = true;
+    supressElementGenerate = false;
+    if (widget.delegate is FlutterListViewDelegate) {
+      var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
+      supressElementGenerate = flutterListDelegate.isSupressElementGenerate;
+    }
+
     try {
       var position = parentScrollableState?.position;
       await position?.animateTo(scrollOffset, duration: duration, curve: curve);
@@ -205,24 +217,24 @@ class FlutterListViewElement extends RenderObjectElement {
 
   FirstItemAlign get firstItemAlign {
     if (widget.delegate is FlutterListViewDelegate) {
-      var chatListDelegate = widget.delegate as FlutterListViewDelegate;
-      return chatListDelegate.firstItemAlign;
+      var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
+      return flutterListDelegate.firstItemAlign;
     }
     return FirstItemAlign.start;
   }
 
   bool get keepPosition {
     if (widget.delegate is FlutterListViewDelegate) {
-      var chatListDelegate = widget.delegate as FlutterListViewDelegate;
-      return chatListDelegate.keepPosition;
+      var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
+      return flutterListDelegate.keepPosition;
     }
     return false;
   }
 
   double get keepPositionOffset {
     if (widget.delegate is FlutterListViewDelegate) {
-      var chatListDelegate = widget.delegate as FlutterListViewDelegate;
-      return chatListDelegate.keepPositionOffset;
+      var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
+      return flutterListDelegate.keepPositionOffset;
     }
     return 0;
   }
@@ -234,11 +246,11 @@ class FlutterListViewElement extends RenderObjectElement {
       return _itemHeights[key]!;
     } else {
       if (widget.delegate is FlutterListViewDelegate) {
-        var chatListDelegate = widget.delegate as FlutterListViewDelegate;
-        if (chatListDelegate.onItemHeight != null) {
-          return chatListDelegate.onItemHeight!(index);
+        var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
+        if (flutterListDelegate.onItemHeight != null) {
+          return flutterListDelegate.onItemHeight!(index);
         } else {
-          return chatListDelegate.preferItemHeight;
+          return flutterListDelegate.preferItemHeight;
         }
       }
       return 50.0;
@@ -247,9 +259,9 @@ class FlutterListViewElement extends RenderObjectElement {
 
   bool queryIsStickyItemByIndex(int index) {
     if (widget.delegate is FlutterListViewDelegate) {
-      var chatListDelegate = widget.delegate as FlutterListViewDelegate;
-      if (chatListDelegate.onItemSticky != null) {
-        return chatListDelegate.onItemSticky!(index);
+      var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
+      if (flutterListDelegate.onItemSticky != null) {
+        return flutterListDelegate.onItemSticky!(index);
       }
     }
 
@@ -262,9 +274,9 @@ class FlutterListViewElement extends RenderObjectElement {
 
   String getKeyByItemIndex(int index) {
     if (widget.delegate is FlutterListViewDelegate) {
-      var chatListDelegate = widget.delegate as FlutterListViewDelegate;
-      if (chatListDelegate.onItemKey != null) {
-        return chatListDelegate.onItemKey!(index);
+      var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
+      if (flutterListDelegate.onItemKey != null) {
+        return flutterListDelegate.onItemKey!(index);
       }
     }
     return index.toString();
@@ -283,9 +295,9 @@ class FlutterListViewElement extends RenderObjectElement {
     // 以下是重写该方法
     var hasCalced = false;
     if (widget.delegate is FlutterListViewDelegate) {
-      var chatListDelegate = widget.delegate as FlutterListViewDelegate;
-      if (chatListDelegate.onItemKey != null ||
-          chatListDelegate.onItemHeight != null) {
+      var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
+      if (flutterListDelegate.onItemKey != null ||
+          flutterListDelegate.onItemHeight != null) {
         double height = 0;
         for (var i = 0; i < childCount; i++) {
           height += getItemHeight(getKeyByItemIndex(i), i);
@@ -306,8 +318,8 @@ class FlutterListViewElement extends RenderObjectElement {
       }
       var itemHeight = 50.0;
       if (widget.delegate is FlutterListViewDelegate) {
-        var chatListDelegate = widget.delegate as FlutterListViewDelegate;
-        itemHeight = chatListDelegate.preferItemHeight;
+        var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
+        itemHeight = flutterListDelegate.preferItemHeight;
       }
 
       height += ((childCount - calcItemCount) * itemHeight);
@@ -333,7 +345,7 @@ class FlutterListViewElement extends RenderObjectElement {
     if (startOffset < 0) {
       startOffset = 0;
     }
-    double endOffset = scrollOffset + cacheExtent;
+    double endOffset = scrollOffset + viewportHeight + cacheExtent;
 
     /// Remove unrenderable item from [_renderedElements]
     /// Notice remove left and remove right is good for performance.
@@ -342,7 +354,7 @@ class FlutterListViewElement extends RenderObjectElement {
       var item = _renderedElements[0];
       if ((item.offset + item.height) < startOffset) {
         _renderedElements.removeAt(0);
-        cachedElements.add(item);
+        putRenderItemToCacheOrPermanent(item);
         if (item == stickyElement) {
           stickyElement = null;
         }
@@ -357,7 +369,7 @@ class FlutterListViewElement extends RenderObjectElement {
       var item = _renderedElements[length - 1];
       if (item.offset > endOffset) {
         _renderedElements.removeAt(length - 1);
-        cachedElements.add(item);
+        putRenderItemToCacheOrPermanent(item);
         if (item == stickyElement) {
           stickyElement = null;
         }
@@ -369,7 +381,7 @@ class FlutterListViewElement extends RenderObjectElement {
 
   FlutterListViewRenderData constructOneIndexElement(
       int index, double itemOffset, bool needInsertToRenderElement) {
-    var result = _createOrReuseElement(cachedElements, index);
+    var result = _createOrReuseElement(index);
     result.offset = itemOffset;
     if (needInsertToRenderElement) {
       _renderedElements.insert(0, result);
@@ -392,7 +404,7 @@ class FlutterListViewElement extends RenderObjectElement {
       var firstElement = _renderedElements[0];
       if (firstElement.offset > startOffset && firstElement.index > 0) {
         var indexOfCreate = firstElement.index - 1;
-        result = _createOrReuseElement(cachedElements, indexOfCreate);
+        result = _createOrReuseElement(indexOfCreate);
         result.offset = firstElement.offset - result.height;
         _renderedElements.insert(0, result);
       }
@@ -440,26 +452,14 @@ class FlutterListViewElement extends RenderObjectElement {
     return diff;
   }
 
-  FlutterListViewRenderData _createOrReuseElement(
-      List<FlutterListViewRenderData> cacheds, int index) {
-    Element? newElement;
-    if (cacheds.isNotEmpty) {
-      /// Priority reuse same key elements
-      var itemKey = getKeyByItemIndex(index);
-      var matchedIndex = 0;
-      for (var i = 0; i < cacheds.length; i++) {
-        if (cacheds[i].itemKey == itemKey) {
-          matchedIndex = i;
-          break;
-        }
-      }
-
-      newElement = cacheds[matchedIndex].element;
-      cacheds.removeAt(matchedIndex);
-      newElement = updateChild(newElement, _build(index), index);
+  FlutterListViewRenderData _createOrReuseElement(int index) {
+    Element? newElement = fetchItemFromCacheOrPermanent(index);
+    if (newElement != null) {
+      updateChild(newElement, _build(index), index);
     } else {
       newElement = createChild2(index);
     }
+
     var itemKey = getKeyByItemIndex(index);
     var height = getItemHeight(itemKey, index);
     var isSticky = queryIsStickyItemByIndex(index);
@@ -497,7 +497,7 @@ class FlutterListViewElement extends RenderObjectElement {
       if ((lastElement.offset + lastElement.height) <= endOffset &&
           lastElement.index < childCount - 1) {
         var indexOfCreate = lastElement.index + 1;
-        result = _createOrReuseElement(cachedElements, indexOfCreate);
+        result = _createOrReuseElement(indexOfCreate);
         result.offset = lastElement.offset + lastElement.height;
         _renderedElements.add(result);
       }
@@ -514,7 +514,7 @@ class FlutterListViewElement extends RenderObjectElement {
         if (accuHeight <= startOffset &&
             (accuHeight + itemHeight) >= startOffset) {
           firstIndex = i;
-          result = _createOrReuseElement(cachedElements, firstIndex);
+          result = _createOrReuseElement(firstIndex);
           result.offset = accuHeight;
           _renderedElements.add(result);
           break;
@@ -639,6 +639,10 @@ class FlutterListViewElement extends RenderObjectElement {
     for (var item in cachedElements) {
       visitor(item.element);
     }
+
+    for (var key in permanentElements.keys) {
+      visitor(permanentElements[key]!.element);
+    }
   }
 
   @override
@@ -699,11 +703,17 @@ class FlutterListViewElement extends RenderObjectElement {
       removeChildElement(item.element);
     }
     cachedElements.clear();
+
+    for (var key in permanentElements.keys) {
+      removeChildElement(permanentElements[key]!.element);
+    }
+
+    permanentElements.clear();
   }
 
   void removeAllChildrenToCachedElements() {
     for (var item in _renderedElements) {
-      cachedElements.add(item);
+      putRenderItemToCacheOrPermanent(item);
       if (item == stickyElement) {
         stickyElement = null;
       }
@@ -711,9 +721,58 @@ class FlutterListViewElement extends RenderObjectElement {
     _renderedElements.clear();
 
     if (stickyElement != null) {
-      cachedElements.add(stickyElement!);
+      putRenderItemToCacheOrPermanent(stickyElement!);
     }
     stickyElement = null;
+  }
+
+  bool isPermanentItem(String key) {
+    if (widget.delegate is FlutterListViewDelegate) {
+      var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
+      if (flutterListDelegate.onIsPermanent != null) {
+        return flutterListDelegate.onIsPermanent!(key);
+      }
+    }
+    return false;
+  }
+
+  void putRenderItemToCacheOrPermanent(FlutterListViewRenderData item) {
+    var key = item.itemKey;
+    if (isPermanentItem(key)) {
+      if (permanentElements.containsKey(key)) {
+        assert(false, "Item key has duplicate when cache permanent item");
+      }
+      permanentElements[key] = item;
+    } else {
+      cachedElements.add(item);
+    }
+  }
+
+  Element? fetchItemFromCacheOrPermanent(int index) {
+    Element? newElement;
+    var itemKey = getKeyByItemIndex(index);
+    if (permanentElements.containsKey(itemKey)) {
+      newElement = permanentElements[itemKey]!.element;
+      permanentElements.remove(itemKey);
+    } else {
+      /// PermanentItem will not reused exist cached item.
+      /// It will create new one.
+      if (!isPermanentItem(itemKey) && cachedElements.isNotEmpty) {
+        /// Priority reuse same key elements
+        var matchedIndex = 0;
+        for (var i = 0; i < cachedElements.length; i++) {
+          if (cachedElements[i].itemKey == itemKey) {
+            matchedIndex = i;
+            break;
+          }
+        }
+
+        newElement = cachedElements[matchedIndex].element;
+        cachedElements.removeAt(matchedIndex);
+      }
+    }
+
+    return newElement;
   }
 
   @override

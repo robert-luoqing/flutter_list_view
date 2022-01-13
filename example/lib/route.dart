@@ -3,6 +3,8 @@ import 'flutter_list_view_performance.dart';
 import 'init_jump.dart';
 import 'init_jump_after_loaddata.dart';
 import 'jump_to_index.dart';
+import 'list_view_performance.dart';
+import 'permanent_item.dart';
 import 'pull_to_refresh_list.dart';
 import 'sticky_header.dart';
 import 'sticky_header_refresh.dart';
@@ -31,5 +33,7 @@ class SectionViewRoute {
         const InitJumpAfterLoadDataPage(),
     "/flutterListViewPerformance": (context) =>
         const FlutterListViewPerformance(),
+    "/listViewPerformance": (context) => const ListViewPerformance(),
+    "/permanentItem": (conntext) => const PermanentItem()
   };
 }

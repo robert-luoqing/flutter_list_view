@@ -30,8 +30,13 @@
 ## 1.0.9
 * Resolve performance issue when without onItemHeight and onItemKey and child count more than 1M
 
+## 1.1.0
+* Add permanent item which will not to be reused and keep in FlutterListView util FlutterListView disposed
+
+## 1.1.1
+* Provide option to determine whether or not generate items during scrolling
+
 ## TODO
 * Add horizontal scroll support
-* Add permanent item which will not to be reused and keep in FlutterListView util FlutterListView disposed
 * Add creating items when flutter list view created
 * Add Flutter Key to reference items' element

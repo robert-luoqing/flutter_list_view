@@ -12,20 +12,30 @@ class JumpToIndexPage extends StatefulWidget {
 
 class _JumpToIndexPageState extends State<JumpToIndexPage> {
   FlutterListViewController controller = FlutterListViewController();
-  TextEditingController textController = TextEditingController(text: "50");
+  TextEditingController indexTextController =
+      TextEditingController(text: "5000");
+  TextEditingController offsetTextController =
+      TextEditingController(text: "60");
 
   List<int> data = [];
+  List<double> heights = [];
+  List<Color> colors = [];
+  bool alignToBottom = false;
   @override
   initState() {
     for (var i = 0; i < 100000; i++) {
       data.add(i);
+      int height = 35 + Random().nextInt(100);
+      heights.add(double.parse(height.toString()));
+      colors.add(Colors.lightBlue[100 * (height % 9)] ?? Colors.lightBlue);
     }
     super.initState();
   }
 
   @override
   dispose() {
-    textController.dispose();
+    indexTextController.dispose();
+    offsetTextController.dispose();
     super.dispose();
   }
 
@@ -33,36 +43,75 @@ class _JumpToIndexPageState extends State<JumpToIndexPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Jump to the index what you want"),
+        title: const Text("Jump or scroll to index"),
       ),
       body: Column(
         children: [
-          Wrap(spacing: 20, children: [
-            TextField(controller: textController),
-            ElevatedButton(
-                onPressed: () {
-                  controller.sliverController
-                      .jumpToIndex(int.parse(textController.text));
+          Row(
+            children: [
+              const Text("Index: "),
+              SizedBox(
+                  width: 80, child: TextField(controller: indexTextController)),
+              ElevatedButton(
+                  onPressed: () async {
+                    controller.sliverController.jumpToIndex(
+                        int.parse(indexTextController.text),
+                        offset: double.parse(offsetTextController.text),
+                        offsetBasedOnBottom: alignToBottom);
+                    await Future.delayed(const Duration(seconds: 1));
+                    indexTextController.text =
+                        Random().nextInt((10000)).toString();
+                  },
+                  child: const Text("Jump")),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: ElevatedButton(
+                    onPressed: () async {
+                      controller.sliverController.animateToIndex(
+                          int.parse(indexTextController.text),
+                          offset: double.parse(offsetTextController.text),
+                          offsetBasedOnBottom: alignToBottom,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.ease);
+                      await Future.delayed(const Duration(seconds: 1));
+                      indexTextController.text =
+                          Random().nextInt((10000)).toString();
+                    },
+                    child: const Text("Animite")),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              const Text("Offset: "),
+              SizedBox(
+                  width: 80,
+                  child: TextField(controller: offsetTextController)),
+              Checkbox(
+                value: alignToBottom,
+                onChanged: (value) {
+                  setState(() {
+                    alignToBottom = value ?? false;
+                  });
                 },
-                child: const Text("Jump")),
-            ElevatedButton(
-                onPressed: () {
-                  controller.sliverController.animateToIndex(
-                      int.parse(textController.text),
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.ease);
-                },
-                child: const Text("Animite")),
-          ]),
+              ),
+              const Text("Align to Bottom")
+            ],
+          ),
           Expanded(
             child: FlutterListView(
-                controller: controller,
-                delegate: FlutterListViewDelegate(
-                    (BuildContext context, int index) =>
-                        Item(text: data[index]),
-                    childCount: data.length,
-                    preferItemHeight: 33,
-                    onItemHeight: (context) => 33)),
+              controller: controller,
+              delegate: FlutterListViewDelegate(
+                (BuildContext context, int index) => Item(
+                  text: data[index],
+                  color: colors[index],
+                  height: heights[index],
+                ),
+                childCount: data.length,
+                preferItemHeight: 50,
+                // onItemHeight: (context) => 33
+              ),
+            ),
           ),
         ],
       ),
@@ -71,15 +120,17 @@ class _JumpToIndexPageState extends State<JumpToIndexPage> {
 }
 
 class Item extends StatefulWidget {
-  const Item({Key? key, required this.text}) : super(key: key);
+  const Item(
+      {Key? key, required this.text, required this.color, required this.height})
+      : super(key: key);
   final int text;
+  final Color color;
+  final double height;
   @override
   _ItemState createState() => _ItemState();
 }
 
 class _ItemState extends State<Item> {
-  double height = 40.0;
-  Color? color = Colors.white;
   @override
   void initState() {
     super.initState();
@@ -88,18 +139,20 @@ class _ItemState extends State<Item> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          var randomNum = Random().nextInt(100000);
-          color = Colors.lightBlue[100 * (randomNum % 9)];
-        });
-      },
+      onTap: () {},
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        height: height,
-        child: Container(
-            color: color,
-            child: ListTile(title: Text('List Item ${widget.text}'))),
+        height: widget.height,
+        child: Column(
+          children: [
+            Expanded(
+              child: Container(
+                  color: widget.color,
+                  child: ListTile(title: Text('List Item ${widget.text}'))),
+            ),
+            const SizedBox(height: 1, child: Divider()),
+          ],
+        ),
       ),
     );
   }

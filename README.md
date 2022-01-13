@@ -1,19 +1,17 @@
 ## Flutter List View
 
-I don't like official list view. There are some features don't provide and jumpTo performance is not good. I rewrite the list supported these features in [Features] sections
+Enhance list view to support scroll to index, jump to index, header sticky, enable without scroll when insert data on top and turn performance to reused items.
 
 ## Features
 
-1. Support jump to index  
-   Jump to index is not support in listview. But it is useful function 
-2. Support keep position  
-   If some data insert before other items, It will scroll down. Some chat software may want to keep the position not scroll down when new message coming.
-3. Support show top in reverse mode if the data can't fill full viewport.
-4. Support header sticky
-5. Support integrate pull_to_refresh
-6. Support scroll to specify index when initialize data
-7. Performance  
-   When listview jump to somewhere, The items which layout before the position will always loaded. It is not realy lazy loading.
+1. Support the list view to jump to and scroll to index.
+2. Support for inserting data without scrolling  
+3. Support for show top in reverse mode if the data can't fill the full viewport.
+4. Support sticky header.
+5. Support integrated pull_to_refresh
+6. When initializing data, allow for scrolling to specify an index.
+7. To save performance, flutter list_view always reuses the rendered item.
+8. Support to keep specifying items without reusing and disposing of them once the item is created.
 
 ## Screen
 |  |  |
@@ -187,4 +185,16 @@ Widget build(BuildContext context) {
     ),
   );
 }
+```
+
+### Support to keep specifying items without reusing and disposing of them once the item is created.
+```dart
+FlutterListView(
+  delegate: FlutterListViewDelegate(
+      (BuildContext context, int index) =>
+          Item(text: data[index].toString()),
+      childCount: data.length,
+      // If onItemKey is not given, the key is index
+      // The example is indicate the "40" item will not be reused and disposed after it was created
+      onIsPermanent: (key) => key == "40"))
 ```

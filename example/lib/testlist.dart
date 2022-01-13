@@ -20,14 +20,14 @@ class _TestListPageState extends State<TestListPage> {
   FirstItemAlign firstItemAlign = FirstItemAlign.start;
   @override
   initState() {
-    for (var i = 0; i < 40; i++) {
+    for (var i = 0; i < 400000; i++) {
       data.add(i);
     }
 
     flutterListViewController.onPaintItemPositionsCallback =
         (height, positions) {
       for (var pos in positions) {
-        print("index:${pos.index} offset:${pos.offset}");
+        // print("index:${pos.index} offset:${pos.offset}");
       }
     };
 
@@ -93,8 +93,10 @@ class _TestListPageState extends State<TestListPage> {
                     child: const Text("Animite")),
                 ElevatedButton(
                     onPressed: () {
-                      scrollController
-                          .jumpTo(double.parse(textController.text));
+                      scrollController.animateTo(
+                          double.parse(textController.text),
+                          duration: const Duration(milliseconds: 2000),
+                          curve: Curves.ease);
                     },
                     child: const Text("Scroll To")),
                 ElevatedButton(
@@ -145,7 +147,7 @@ class _TestListPageState extends State<TestListPage> {
                   controller: scrollController,
                   reverse: reverse,
                   slivers: [
-                    buildSliverList(15),
+                    // buildSliverList(15),
                     FlutterSliverList(
                         controller: flutterListViewController,
                         delegate: FlutterListViewDelegate(
@@ -165,7 +167,7 @@ class _TestListPageState extends State<TestListPage> {
                             keepPosition: keepPosition,
                             keepPositionOffset: 80,
                             firstItemAlign: firstItemAlign)),
-                    buildSliverList(50),
+                    // buildSliverList(50),
                   ],
                 ),
               ),
