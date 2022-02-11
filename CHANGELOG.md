@@ -36,6 +36,9 @@
 ## 1.1.1
 * Provide option to determine whether or not generate items during scrolling to make scroll to index more smooth
 
+## 1.1.2
+* Fix bug: It cause exception when the user stop scroll manually while invoke animite to index
+
 ## TODO
 * Add horizontal scroll support
 * Add creating items when flutter list view created

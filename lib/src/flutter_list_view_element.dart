@@ -192,9 +192,20 @@ class FlutterListViewElement extends RenderObjectElement {
   /// [notifyPositionChanged] is used to send ScrollNotification
   void notifyPositionChanged() {
     WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
-      var position = parentScrollableState?.position;
-      position?.didStartScroll();
-      position?.didEndScroll();
+      try {
+        var position = parentScrollableState?.position;
+
+        // If current position is not IdleScrollActivity, We don't need notification.
+        if (position != null &&
+            position.activity != null &&
+            position.activity is IdleScrollActivity) {
+          position.didStartScroll();
+          position.didEndScroll();
+        }
+      } catch (e, s) {
+        print(
+            "error in notifyPositionChanged in flutter list view element, $e, $s");
+      }
     });
   }
 
