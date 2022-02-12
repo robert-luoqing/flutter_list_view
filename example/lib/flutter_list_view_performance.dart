@@ -24,7 +24,7 @@ class _FlutterListViewPerformanceState
               title: Text("List Item $index"),
             );
           },
-          childCount: 100000000,
+          childCount: 1000000,
         )));
   }
 }

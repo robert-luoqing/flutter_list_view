@@ -21,7 +21,7 @@ class _TestListViewPerformanceState extends State<ListViewPerformance> {
               title: Text("List Item $index"),
             );
           },
-          itemCount: 100000000,
+          itemCount: 1000000,
         ));
   }
 }

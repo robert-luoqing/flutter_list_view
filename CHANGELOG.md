@@ -39,6 +39,9 @@
 ## 1.1.2
 * Fix bug: It cause exception when the user stop scroll manually while invoke animite to index
 
+## 1.1.3
+* Add FlutterListView.builder and FlutterListView.separated
+
 ## TODO
 * Add horizontal scroll support
 * Add creating items when flutter list view created

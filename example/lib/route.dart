@@ -6,6 +6,7 @@ import 'jump_to_index.dart';
 import 'list_view_performance.dart';
 import 'permanent_item.dart';
 import 'pull_to_refresh_list.dart';
+import 'separatedList.dart';
 import 'sticky_header.dart';
 import 'sticky_header_refresh.dart';
 import 'testlist.dart';
@@ -34,6 +35,7 @@ class SectionViewRoute {
     "/flutterListViewPerformance": (context) =>
         const FlutterListViewPerformance(),
     "/listViewPerformance": (context) => const ListViewPerformance(),
-    "/permanentItem": (conntext) => const PermanentItem()
+    "/permanentItem": (context) => const PermanentItem(),
+    "/separatedListPage": (context) => const SeparatedListPage()
   };
 }
