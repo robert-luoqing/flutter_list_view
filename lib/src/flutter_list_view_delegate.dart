@@ -146,10 +146,20 @@ class FlutterListViewDelegate extends SliverChildDelegate {
 
   /// Query does the item is permanent item
   /// permanent item will not reused and release util list view disposed
-  final bool Function(String key)? onIsPermanent;
+  /// [keyOrIndex] is onItemKey provide, the param is key, else it is index
+  final bool Function(String keyOrIndex)? onIsPermanent;
 
   /// [isSupressElementGenerate] is true, the element will not generated during scroll
   final bool isSupressElementGenerate;
+
+  /// [syncCreatedItemIndexs] is used to create item when list view created
+  /// indexs which need create
+  /// The method will be invoke to create element when childCount from 0 to non-zero
+  /// or childCount is non-zero when list view mounted
+  /// or syncCreatedItemIndexs changed
+  /// Notice, it will be trigger when syncCreatedItemKeyOrIndexs object mutated
+  /// It will rememeber the keyOrIndex once created
+  // final List<String>? syncCreatedItemIndexs;
 
   Widget _createErrorWidget(Object exception, StackTrace stackTrace) {
     final FlutterErrorDetails details = FlutterErrorDetails(
