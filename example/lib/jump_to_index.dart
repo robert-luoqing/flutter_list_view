@@ -79,6 +79,17 @@ class _JumpToIndexPageState extends State<JumpToIndexPage> {
                     },
                     child: const Text("Animite")),
               ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: ElevatedButton(
+                    onPressed: () {
+                      controller.sliverController.ensureVisible(
+                          int.parse(indexTextController.text),
+                          offset: double.parse(offsetTextController.text),
+                          offsetBasedOnBottom: alignToBottom);
+                    },
+                    child: const Text("visible")),
+              ),
             ],
           ),
           Row(

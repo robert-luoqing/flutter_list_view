@@ -189,6 +189,23 @@ class FlutterListViewElement extends RenderObjectElement {
     jumpToIndex(index, offset, basedOnBottom);
   }
 
+  void ensureVisible(int index, double offset, bool basedOnBottom) {
+    assert(index >= 0 && index < childCount,
+        "Index should be >=0 and  <= child count");
+    // paintedElements
+    var flutterListViewRender = renderObject as FlutterListViewRender;
+    var viewportHeight = flutterListViewRender.currentViewportHeight ?? 0;
+    for (var item in flutterListViewRender.paintedElements) {
+      if (item.index == index &&
+          item.offset > 0 &&
+          item.offset + item.height < viewportHeight) {
+        return;
+      }
+    }
+
+    jumpToIndex(index, offset, basedOnBottom);
+  }
+
   /// [notifyPositionChanged] is used to send ScrollNotification
   void notifyPositionChanged() {
     WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {

@@ -36,6 +36,13 @@ class FlutterSliverListController {
     }
   }
 
+  void ensureVisible(int index,
+      {double offset = 0, bool offsetBasedOnBottom = false}) {
+    if (_listView != null) {
+      _listView!.ensureVisible(index, offset, offsetBasedOnBottom);
+    }
+  }
+
   void attach(FlutterListViewElement listView) {
     _listView = listView;
   }

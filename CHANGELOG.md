@@ -42,7 +42,11 @@
 ## 1.1.3
 * Add FlutterListView.builder and FlutterListView.separated
 
+## 1.1.4
+* Add ensureVisible(index) functionality
+
 ## TODO
 * Add horizontal scroll support
 * Add creating items when flutter list view created
 * Add Flutter Key to reference items' element
+* Add header is not override
