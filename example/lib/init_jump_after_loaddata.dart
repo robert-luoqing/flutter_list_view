@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_list_view/flutter_list_view.dart';
 import 'package:flutter/material.dart';
 
@@ -43,15 +45,19 @@ class _InitJumpAfterLoadDataPageState extends State<InitJumpAfterLoadDataPage> {
           Expanded(
             child: FlutterListView(
                 delegate: FlutterListViewDelegate(
-                    (BuildContext context, int index) => Container(
-                          color: Colors.white,
-                          child:
-                              ListTile(title: Text('List Item ${data[index]}')),
-                        ),
-                    childCount: data.length,
-                    initIndex: 50,
-                    initOffset: 0,
-                    initOffsetBasedOnBottom: false)),
+              (BuildContext context, int index) {
+                return Container(
+                  height: 40 + (index % 10) * 10,
+                  color: Colors.white,
+                  child: ListTile(title: Text('List Item ${data[index]}')),
+                );
+              },
+              childCount: data.length,
+              initIndex: 400,
+              initOffset: 40,
+              // initOffsetBasedOnBottom: false,
+              firstItemAlign: FirstItemAlign.end,
+            )),
           ),
         ],
       ),
