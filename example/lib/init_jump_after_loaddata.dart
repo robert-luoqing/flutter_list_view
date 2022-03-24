@@ -49,9 +49,13 @@ class _InitJumpAfterLoadDataPageState extends State<InitJumpAfterLoadDataPage> {
                 return Container(
                   height: 40 + (index % 10) * 10,
                   color: Colors.white,
-                  child: ListTile(title: Text('List Item ${data[index]}')),
+                  child: ListTile(
+                    title: Text('List Item ${data[index]}'),
+                    subtitle:const Text("Sub title"),
+                  ),
                 );
               },
+              preferItemHeight: 200,
               childCount: data.length,
               initIndex: 400,
               initOffset: 40,
