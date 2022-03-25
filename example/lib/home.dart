@@ -81,6 +81,11 @@ class _HomePageState extends State<HomePage> {
                   Navigator.of(context).pushNamed("/separatedListPage");
                 },
                 child: const Text("Separated List")),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed("/initJumpKeepPositionPage");
+                },
+                child: const Text("Init index and keep position")),
           ],
         ),
       ),

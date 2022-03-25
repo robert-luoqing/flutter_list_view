@@ -2,6 +2,7 @@ import 'chat.dart';
 import 'flutter_list_view_performance.dart';
 import 'init_jump.dart';
 import 'init_jump_after_loaddata.dart';
+import 'init_jump_keep_position.dart';
 import 'jump_to_index.dart';
 import 'list_view_performance.dart';
 import 'permanent_item.dart';
@@ -36,6 +37,7 @@ class SectionViewRoute {
         const FlutterListViewPerformance(),
     "/listViewPerformance": (context) => const ListViewPerformance(),
     "/permanentItem": (context) => const PermanentItem(),
-    "/separatedListPage": (context) => const SeparatedListPage()
+    "/separatedListPage": (context) => const SeparatedListPage(),
+    "/initJumpKeepPositionPage": (context) => const InitJumpKeepPositionPage(),
   };
 }
