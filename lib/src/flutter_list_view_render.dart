@@ -1,6 +1,5 @@
 import 'flutter_list_view_delegate.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
 import 'flutter_list_view_element.dart';
 import 'flutter_list_view_model.dart';
 import 'flutter_list_view_render_data.dart';
@@ -147,10 +146,12 @@ class FlutterListViewRender extends RenderSliver
       RenderBox child = spElement!.element.renderObject! as RenderBox;
       child.layout(childConstraints, parentUsesSize: true);
       var itemHeight = child.size.height;
-      compensationScroll += childManager.updateElementPosition(
+      var singleCompensationScroll = childManager.updateElementPosition(
           spEle: spElement!,
           newHeight: itemHeight,
           needUpdateNextElementOffset: true);
+
+      compensationScroll += singleCompensationScroll;
     }
 
     while (true) {
@@ -284,6 +285,15 @@ class FlutterListViewRender extends RenderSliver
           hasVisualOverflow: true,
           scrollOffsetCorrection: scrollDy - constraints.scrollOffset);
       return true;
+    }
+
+    // scrollDy == 0 To do twice jump.
+    if (scrollDy == 0 && childManager.redoJumpIndexTimes == 0) {
+      childManager.redoJumpIndexTimes++;
+      childManager.indexShoudBeJumpTo = jumpIndex;
+      childManager.indexShoudBeJumpOffset = indexShoudBeJumpOffset;
+      childManager.offsetBasedOnBottom = offsetBasedOnBottom;
+      childManager.markAsInvalid = true;
     }
 
     return false;

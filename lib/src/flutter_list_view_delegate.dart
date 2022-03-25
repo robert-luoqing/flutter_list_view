@@ -33,6 +33,7 @@ class FlutterListViewDelegate extends SliverChildDelegate {
       this.preferItemHeight = 50,
       this.firstItemAlign = FirstItemAlign.start,
       this.initIndex = 0,
+      this.forceToExecuteInitIndex,
       this.initOffset = 0.0,
       this.initOffsetBasedOnBottom = false,
       this.onIsPermanent,
@@ -42,7 +43,11 @@ class FlutterListViewDelegate extends SliverChildDelegate {
   /// When initIndex changed, if child count is not 0, it also effect
   /// [initOffset] is scroll to index and the distance from top or bottom based
   /// on [initOffsetBasedOnBottom]
+  /// If your [initIndex] didn't change. but data have changed, if you want force wiget to jump to initIndex,
+  /// You can change [forceToExecuteInitIndex], widget will detct does the forceToExecuteInitIndex have be changed.
+  /// Once it changed, It also enforce to execute jump to initIndex.
   final int initIndex;
+  final int? forceToExecuteInitIndex;
   final double initOffset;
   final bool initOffsetBasedOnBottom;
 

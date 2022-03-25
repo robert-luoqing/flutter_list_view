@@ -24,18 +24,23 @@ class FlutterListViewElement extends RenderObjectElement {
     int newInitIndex = 0;
     int oldChildCount = 0;
     int newChildCount = 0;
+    int? oldForceToExecuteInitIndex;
+    int? newForceToExecuteInitIndex;
+
     double newInitOffset = 0.0;
     bool newInitOffsetBasedOnBottom = false;
 
     if (oldDelegate != null && oldDelegate is FlutterListViewDelegate) {
       oldInitIndex = oldDelegate.initIndex;
       oldChildCount = oldDelegate.childCount ?? 99999999;
+      oldForceToExecuteInitIndex = oldDelegate.forceToExecuteInitIndex;
     }
     if (newDelegate is FlutterListViewDelegate) {
       newInitIndex = newDelegate.initIndex;
       newChildCount = newDelegate.childCount ?? 99999999;
       newInitOffset = newDelegate.initOffset;
       newInitOffsetBasedOnBottom = newDelegate.initOffsetBasedOnBottom;
+      newForceToExecuteInitIndex = newDelegate.forceToExecuteInitIndex;
     }
 
     bool needJump = false;
@@ -47,8 +52,13 @@ class FlutterListViewElement extends RenderObjectElement {
       }
     }
 
+    if (oldForceToExecuteInitIndex != newForceToExecuteInitIndex) {
+      needJump = true;
+    }
+
     if (needJump) {
       indexShoudBeJumpTo = newInitIndex;
+      redoJumpIndexTimes = 0;
       indexShoudBeJumpOffset = newInitOffset;
       offsetBasedOnBottom = newInitOffsetBasedOnBottom;
       markAsInvalid = true;
@@ -86,7 +96,9 @@ class FlutterListViewElement extends RenderObjectElement {
   bool markAsInvalid = true;
 
   /// [indexShoudBeJumpTo] is mean not jump to
+  /// [redoJumpIndexTimes] is used to two times evalute the position
   int? indexShoudBeJumpTo;
+  int redoJumpIndexTimes = 0;
   double indexShoudBeJumpOffset = 0.0;
 
   /// [offsetBasedOnBottom] only apply to jumpTo and comunicate with render
@@ -142,6 +154,7 @@ class FlutterListViewElement extends RenderObjectElement {
     assert(index >= 0 && index < childCount,
         "Index should be >=0 and  <= child count");
     indexShoudBeJumpTo = index;
+    redoJumpIndexTimes = 0;
     indexShoudBeJumpOffset = offset;
     offsetBasedOnBottom = basedOnBottom;
     markAsInvalid = true;

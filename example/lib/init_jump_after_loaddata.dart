@@ -20,6 +20,7 @@ class _InitJumpAfterLoadDataPageState extends State<InitJumpAfterLoadDataPage> {
   double initOffset = 0;
   List<FlutterListViewItemPosition> lastPositions = [];
   String htmlLine = "<div>Single line</div>";
+  int forceToExecuteInitIndex = 0;
 
   @override
   initState() {
@@ -51,6 +52,7 @@ class _InitJumpAfterLoadDataPageState extends State<InitJumpAfterLoadDataPage> {
         0, List.filled(2 + _random.nextInt(10), '\n').join(htmlLine));
     data = newData;
     initIndex++;
+    forceToExecuteInitIndex++;
     print("---------------index:$initIndex, offset: $initOffset");
     setState(() {});
   }
@@ -83,6 +85,7 @@ class _InitJumpAfterLoadDataPageState extends State<InitJumpAfterLoadDataPage> {
                 preferItemHeight: 200,
                 childCount: data.length,
                 initIndex: initIndex,
+                forceToExecuteInitIndex: forceToExecuteInitIndex,
                 initOffset: initOffset,
                 firstItemAlign: FirstItemAlign.end,
               ),
