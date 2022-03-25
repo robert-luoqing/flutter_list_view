@@ -69,24 +69,22 @@ class _InitJumpAfterLoadDataPageState extends State<InitJumpAfterLoadDataPage> {
                 child: const Text("Insert line at index 0")),
           ]),
           Expanded(
-            child: Scrollbar(
-              child: FlutterListView(
-                scrollDirection: Axis.vertical,
-                key: ObjectKey(data.hashCode),
-                controller: viewController,
-                delegate: FlutterListViewDelegate(
-                  (BuildContext context, int index) {
-                    return Container(
-                      color: Colors.white,
-                      child: Html(data: data[index]),
-                    );
-                  },
-                  preferItemHeight: 200,
-                  childCount: data.length,
-                  initIndex: initIndex,
-                  initOffset: initOffset,
-                  firstItemAlign: FirstItemAlign.end,
-                ),
+            child: FlutterListView(
+              scrollDirection: Axis.vertical,
+              key: ObjectKey(data.hashCode),
+              controller: viewController,
+              delegate: FlutterListViewDelegate(
+                (BuildContext context, int index) {
+                  return Container(
+                    color: Colors.white,
+                    child: Html(data: data[index]),
+                  );
+                },
+                preferItemHeight: 200,
+                childCount: data.length,
+                initIndex: initIndex,
+                initOffset: initOffset,
+                firstItemAlign: FirstItemAlign.end,
               ),
             ),
           ),
