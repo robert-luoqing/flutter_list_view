@@ -48,6 +48,9 @@
 ## 1.1.5
 * Fixed jump to index or init index will scroll to wrong position
 
+## 1.1.6
+* Fixed jump to index or init index will scroll to wrong position when initOffsetBasedOnBottom: true
+
 ## TODO
 * Add horizontal scroll support
 * Add creating items when flutter list view created
