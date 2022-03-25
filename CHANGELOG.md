@@ -45,6 +45,9 @@
 ## 1.1.4
 * Add ensureVisible(index) functionality
 
+## 1.1.5
+* Fixed jump to index or init index will scroll to wrong position
+
 ## TODO
 * Add horizontal scroll support
 * Add creating items when flutter list view created

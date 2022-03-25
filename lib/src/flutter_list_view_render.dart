@@ -173,6 +173,7 @@ class FlutterListViewRender extends RenderSliver
     // 这段代码用于以下情况
     // 如果记录数为1000, 跳转到每1000条记录时下面会出现空白，并会返弹回去
     // 去掉这个情况，所以加上了这些
+
     if (_isAdjustOperation) {
       var maxRemainArea = childManager.totalItemHeight - viewportHeight;
       if (childManager.totalItemHeight <= viewportHeight &&
@@ -183,7 +184,7 @@ class FlutterListViewRender extends RenderSliver
             scrollOffsetCorrection: -constraints.scrollOffset);
         return;
       } else if (maxRemainArea > 0 &&
-          maxRemainArea < constraints.scrollOffset) {
+          maxRemainArea < (constraints.scrollOffset + compensationScroll)) {
         geometry = SliverGeometry(
             scrollExtent: childManager.totalItemHeight,
             hasVisualOverflow: true,

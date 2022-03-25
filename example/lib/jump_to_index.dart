@@ -59,8 +59,8 @@ class _JumpToIndexPageState extends State<JumpToIndexPage> {
                         offset: double.parse(offsetTextController.text),
                         offsetBasedOnBottom: alignToBottom);
                     await Future.delayed(const Duration(seconds: 1));
-                    indexTextController.text =
-                        Random().nextInt((10000)).toString();
+                    // indexTextController.text =
+                    //     Random().nextInt((10000)).toString();
                   },
                   child: const Text("Jump")),
               Padding(
@@ -74,8 +74,8 @@ class _JumpToIndexPageState extends State<JumpToIndexPage> {
                           duration: const Duration(milliseconds: 3000),
                           curve: Curves.ease);
                       await Future.delayed(const Duration(seconds: 1));
-                      indexTextController.text =
-                          Random().nextInt((10000)).toString();
+                      // indexTextController.text =
+                      //     Random().nextInt((10000)).toString();
                     },
                     child: const Text("Animite")),
               ),
