@@ -1,7 +1,10 @@
 import 'dart:math';
+import 'dart:ui';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_list_view/flutter_list_view.dart';
 import 'package:flutter/material.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 enum MessageType {
   sent,
@@ -27,8 +30,8 @@ class _ChatState extends State<Chat> {
 
   List<ChatModel> messages = [];
   final myController = TextEditingController();
-  final FlutterListViewController listViewController =
-      FlutterListViewController();
+  final listViewController = FlutterListViewController();
+  final refreshController = RefreshController(initialRefresh: false);
   int lastReadMessageIndex = 0;
 
   @override
@@ -67,14 +70,26 @@ class _ChatState extends State<Chat> {
     setState(() {});
   }
 
-  _insertSendMessage(String msg) {
-    messages.insert(
-        0, ChatModel(id: ++currentId, msg: msg.trim(), type: MessageType.sent));
+  _insertSendMessage(String msg, {bool appendToTailer = false}) {
+    if (appendToTailer) {
+      messages.add(
+          ChatModel(id: ++currentId, msg: msg.trim(), type: MessageType.sent));
+    } else {
+      messages.insert(0,
+          ChatModel(id: ++currentId, msg: msg.trim(), type: MessageType.sent));
+    }
   }
 
-  _insertReceiveMessage(String msg) {
-    messages.insert(0,
-        ChatModel(id: ++currentId, msg: msg.trim(), type: MessageType.receive));
+  _insertReceiveMessage(String msg, {bool appendToTailer = false}) {
+    if (appendToTailer) {
+      messages.add(ChatModel(
+          id: ++currentId, msg: msg.trim(), type: MessageType.receive));
+    } else {
+      messages.insert(
+          0,
+          ChatModel(
+              id: ++currentId, msg: msg.trim(), type: MessageType.receive));
+    }
   }
 
   _insertTagMessage(String msg) {
@@ -99,6 +114,26 @@ class _ChatState extends State<Chat> {
       listViewController.sliverController.jumpToIndex(0);
       myController.text = "";
     }
+  }
+
+  void _onRefresh() async {
+    await Future.delayed(const Duration(milliseconds: 1000));
+    // if failed,use refreshFailed()
+    refreshController.refreshCompleted();
+  }
+
+  void _onLoading() async {
+    await Future.delayed(const Duration(milliseconds: 1000));
+
+    for (var i = 0; i < 50; i++) {
+      _insertReceiveMessage(
+          "The demo also show how to append message\r\n" *
+              (Random().nextInt(4) + 1),
+          appendToTailer: true);
+    }
+
+    if (mounted) setState(() {});
+    refreshController.loadComplete();
   }
 
   _renderItem(int index) {
@@ -156,19 +191,52 @@ class _ChatState extends State<Chat> {
   }
 
   _renderList() {
-    return FlutterListView(
-        reverse: true,
-        controller: listViewController,
-        delegate: FlutterListViewDelegate(
-            (BuildContext context, int index) => _renderItem(index),
-            childCount: messages.length,
-            onItemKey: (index) => messages[index].id.toString(),
-            keepPosition: true,
-            keepPositionOffset: 40,
-            initIndex: lastReadMessageIndex,
-            initOffset: 0,
-            initOffsetBasedOnBottom: true,
-            firstItemAlign: FirstItemAlign.end));
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(dragDevices: {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+      }),
+      child: SmartRefresher(
+          enablePullDown: true,
+          enablePullUp: true,
+          header: const WaterDropHeader(),
+          footer: CustomFooter(
+            builder: (context, mode) {
+              Widget body;
+              if (mode == LoadStatus.idle) {
+                body = const Text("pull up load");
+              } else if (mode == LoadStatus.loading) {
+                body = const CupertinoActivityIndicator();
+              } else if (mode == LoadStatus.failed) {
+                body = const Text("Load Failed!Click retry!");
+              } else if (mode == LoadStatus.canLoading) {
+                body = const Text("release to load more");
+              } else {
+                body = const Text("No more Data");
+              }
+              return SizedBox(
+                height: 55.0,
+                child: Center(child: body),
+              );
+            },
+          ),
+          controller: refreshController,
+          onRefresh: _onRefresh,
+          onLoading: _onLoading,
+          child: FlutterListView(
+              reverse: true,
+              controller: listViewController,
+              delegate: FlutterListViewDelegate(
+                  (BuildContext context, int index) => _renderItem(index),
+                  childCount: messages.length,
+                  onItemKey: (index) => messages[index].id.toString(),
+                  keepPosition: true,
+                  keepPositionOffset: 40,
+                  initIndex: lastReadMessageIndex,
+                  initOffset: 0,
+                  initOffsetBasedOnBottom: true,
+                  firstItemAlign: FirstItemAlign.end))),
+    );
   }
 
   @override
@@ -224,6 +292,7 @@ class _ChatState extends State<Chat> {
   void dispose() {
     myController.dispose();
     listViewController.dispose();
+    refreshController.dispose();
     super.dispose();
   }
 }
