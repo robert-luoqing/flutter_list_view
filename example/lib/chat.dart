@@ -108,10 +108,13 @@ class _ChatState extends State<Chat> {
 
   _sendMessage() {
     if (myController.text.isNotEmpty) {
+      if (messages.isNotEmpty) {
+        listViewController.sliverController.jumpToIndex(0);
+      }
       setState(() {
         _insertSendMessage(myController.text);
       });
-      listViewController.sliverController.jumpToIndex(0);
+
       myController.text = "";
     }
   }
@@ -197,7 +200,7 @@ class _ChatState extends State<Chat> {
         PointerDeviceKind.mouse,
       }),
       child: SmartRefresher(
-          enablePullDown: true,
+          enablePullDown: false,
           enablePullUp: true,
           header: const WaterDropHeader(),
           footer: CustomFooter(

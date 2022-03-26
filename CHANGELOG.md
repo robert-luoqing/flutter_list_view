@@ -51,6 +51,9 @@
 ## 1.1.6
 * Fixed jump to index or init index will scroll to wrong position when initOffsetBasedOnBottom: true
 
+## 1.1.7
+* Fixed when remove all item and jump to index was set, onItemKey will get wrong.
+
 ## TODO
 * Add horizontal scroll support
 * Add creating items when flutter list view created

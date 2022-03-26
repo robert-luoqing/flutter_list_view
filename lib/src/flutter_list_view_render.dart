@@ -91,7 +91,8 @@ class FlutterListViewRender extends RenderSliver
 
       childManager.removeAllChildrenToCachedElements();
 
-      if (childManager.indexShoudBeJumpTo != null) {
+      if (childManager.indexShoudBeJumpTo != null &&
+          childManager.indexShoudBeJumpTo! < childManager.childCount) {
         final jumpIndex = childManager.indexShoudBeJumpTo!;
         final jumpOffset = childManager.indexShoudBeJumpOffset;
         final offsetBasedOnBottom = childManager.offsetBasedOnBottom;
