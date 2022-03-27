@@ -42,19 +42,25 @@ class FlutterListViewRender extends RenderSliver
     if (endIndex >= childCount) endIndex = childCount - 1;
 
     for (var i = startIndex; i <= endIndex; i++) {
-      if (childManager.getKeyByItemIndex(i) == key) {
-        return i;
+      if (i >= 0 && i < childCount) {
+        if (childManager.getKeyByItemIndex(i) == key) {
+          return i;
+        }
       }
     }
     for (var i = startIndex - 1; i >= 0; i--) {
-      if (childManager.getKeyByItemIndex(i) == key) {
-        return i;
+      if (i >= 0 && i < childCount) {
+        if (childManager.getKeyByItemIndex(i) == key) {
+          return i;
+        }
       }
     }
 
     for (var i = endIndex + 1; i < childCount; i++) {
-      if (childManager.getKeyByItemIndex(i) == key) {
-        return i;
+      if (i >= 0 && i < childCount) {
+        if (childManager.getKeyByItemIndex(i) == key) {
+          return i;
+        }
       }
     }
 
