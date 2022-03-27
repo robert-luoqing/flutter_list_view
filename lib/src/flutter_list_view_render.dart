@@ -328,12 +328,16 @@ class FlutterListViewRender extends RenderSliver
 
   bool _handleKeepPositionInLayout(
       double viewportHeight, Constraints childConstraints) {
+
     if (childManager.keepPosition &&
         childManager.keepPositionOffset <= constraints.scrollOffset &&
         firstPainItemInViewport != null &&
         constraints.cacheOrigin <= 0 &&
-        constraints.remainingPaintExtent >= viewportHeight &&
+        constraints.remainingPaintExtent >= constraints.viewportMainAxisExtent &&
         childManager.totalItemHeight > viewportHeight) {
+
+          
+
       /// keep position when insert before rendered item.
       /// 1. find item by itemKey
       /// 2. cache position of the item

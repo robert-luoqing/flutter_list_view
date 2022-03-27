@@ -19,6 +19,8 @@ class ChatModel {
   MessageType type;
 }
 
+const constKeepPositionOffset = 40.0;
+
 class Chat extends StatefulWidget {
   const Chat({Key? key}) : super(key: key);
   @override
@@ -27,16 +29,32 @@ class Chat extends StatefulWidget {
 
 class _ChatState extends State<Chat> {
   int currentId = 0;
-
   List<ChatModel> messages = [];
   final myController = TextEditingController();
   final listViewController = FlutterListViewController();
   final refreshController = RefreshController(initialRefresh: false);
   int lastReadMessageIndex = 0;
+  // Fire refresh temp variable
+  double prevScrollOffset = 0;
+  // keepPositionOffset will be set to 0 during refresh
+  double keepPositionOffset = constKeepPositionOffset;
 
   @override
   void initState() {
     _loadMessages();
+    listViewController.addListener(() {
+      const torrentDistance = 40;
+      var pixes = listViewController.position.pixels;
+      if (pixes <= torrentDistance && prevScrollOffset > torrentDistance) {
+        if (!refreshController.isRefresh) {
+          refreshController.requestRefresh();
+          print("-------------------------------------refresh request");
+        }
+      }
+
+      prevScrollOffset = pixes;
+    });
+
     super.initState();
   }
 
@@ -120,9 +138,52 @@ class _ChatState extends State<Chat> {
   }
 
   void _onRefresh() async {
-    await Future.delayed(const Duration(milliseconds: 1000));
-    // if failed,use refreshFailed()
+    await Future.delayed(const Duration(milliseconds: 5000));
+
+    // Loaded messages in here, but not merge new messages to data to build in here!!!!
+    var newMessages = <ChatModel>[];
+    for (var i = 0; i < 20; i++) {
+      var messageText = "The demo also show how to append message\r\n" *
+          (Random().nextInt(4) + 1);
+      newMessages.add(ChatModel(
+          id: ++currentId, msg: messageText.trim(), type: MessageType.receive));
+    }
+
     refreshController.refreshCompleted();
+
+    // It is important!!!1
+    // Merget load message to data in Future
+    WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
+      // It is important to jump to 0
+      // Else it will cause unknown error(Freezen scroll I tested)
+      var oldScrollOffset = listViewController.offset;
+      if (oldScrollOffset < 0) {
+        listViewController.jumpTo(0);
+      }
+
+      // Merget new message to data and set keepPositionOffset to zere
+      // Notice: It make sure listViewController.offset>=0, else if will cause error
+      for (var newMsg in newMessages) {
+        messages.insert(0, newMsg);
+      }
+      keepPositionOffset = 0;
+      setState(() {});
+
+      // Implement to show a little new message
+      // If you don't want the functionality, just remove it.
+      WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
+        if (newMessages.isNotEmpty) {
+          var newScrollOffset = listViewController.offset + oldScrollOffset;
+          listViewController.jumpTo(newScrollOffset);
+        }
+      });
+
+      // Restore keepPositionOffset to make sure have keep position function
+      Future.delayed(const Duration(milliseconds: 10), () {
+        keepPositionOffset = constKeepPositionOffset;
+        setState(() {});
+      });
+    });
   }
 
   void _onLoading() async {
@@ -200,20 +261,48 @@ class _ChatState extends State<Chat> {
         PointerDeviceKind.mouse,
       }),
       child: SmartRefresher(
-          enablePullDown: false,
+          enablePullDown: true,
           enablePullUp: true,
-          header: const WaterDropHeader(),
+          header: CustomHeader(
+            completeDuration: const Duration(milliseconds: 0),
+            builder: (context, mode) {
+              Widget body;
+              if (mode == RefreshStatus.idle) {
+                body = const Text("Pull up load prev msg");
+              } else if (mode == RefreshStatus.refreshing) {
+                body = const CupertinoActivityIndicator();
+              } else if (mode == RefreshStatus.failed) {
+                body = const Text("Load Failed!Click retry!");
+              } else if (mode == RefreshStatus.canRefresh) {
+                body = const Text("Release to load more");
+              } else {
+                body = const Text("No more Data");
+              }
+              if (mode == RefreshStatus.completed) {
+                return Container();
+              } else {
+                return RotatedBox(
+                  quarterTurns: 2,
+                  child: SizedBox(
+                    height: 55.0,
+                    child: Center(child: body),
+                  ),
+                );
+              }
+            },
+          ),
+          // const WaterDropHeader(),
           footer: CustomFooter(
             builder: (context, mode) {
               Widget body;
               if (mode == LoadStatus.idle) {
-                body = const Text("pull up load");
+                body = const Text("Pull down to load more message");
               } else if (mode == LoadStatus.loading) {
                 body = const CupertinoActivityIndicator();
               } else if (mode == LoadStatus.failed) {
                 body = const Text("Load Failed!Click retry!");
               } else if (mode == LoadStatus.canLoading) {
-                body = const Text("release to load more");
+                body = const Text("Release to load more");
               } else {
                 body = const Text("No more Data");
               }
@@ -234,7 +323,7 @@ class _ChatState extends State<Chat> {
                   childCount: messages.length,
                   onItemKey: (index) => messages[index].id.toString(),
                   keepPosition: true,
-                  keepPositionOffset: 40,
+                  keepPositionOffset: keepPositionOffset,
                   initIndex: lastReadMessageIndex,
                   initOffset: 0,
                   initOffsetBasedOnBottom: true,
