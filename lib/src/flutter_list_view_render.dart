@@ -266,7 +266,9 @@ class FlutterListViewRender extends RenderSliver
                 constraints.scrollOffset > 0.0,
         // hasVisualOverflow: true,
         scrollOffsetCorrection:
-            compensationScroll == 0 ? null : compensationScroll);
+            (compensationScroll < 0.01 && compensationScroll >= -0.01)
+                ? null
+                : compensationScroll);
 
     if (_isAdjustOperation) {
       childManager.notifyPositionChanged();
@@ -328,16 +330,13 @@ class FlutterListViewRender extends RenderSliver
 
   bool _handleKeepPositionInLayout(
       double viewportHeight, Constraints childConstraints) {
-
     if (childManager.keepPosition &&
         childManager.keepPositionOffset <= constraints.scrollOffset &&
         firstPainItemInViewport != null &&
         constraints.cacheOrigin <= 0 &&
-        constraints.remainingPaintExtent >= constraints.viewportMainAxisExtent &&
+        constraints.remainingPaintExtent >=
+            constraints.viewportMainAxisExtent &&
         childManager.totalItemHeight > viewportHeight) {
-
-          
-
       /// keep position when insert before rendered item.
       /// 1. find item by itemKey
       /// 2. cache position of the item

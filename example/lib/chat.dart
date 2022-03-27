@@ -33,27 +33,41 @@ class _ChatState extends State<Chat> {
   final myController = TextEditingController();
   final listViewController = FlutterListViewController();
   final refreshController = RefreshController(initialRefresh: false);
-  int lastReadMessageIndex = 0;
+
+  /// Using init index to control load first messages
+  int initIndex = 0;
+  double initOffset = 0.0;
+  bool initOffsetBasedOnBottom = true;
+  int forceToExecuteInitIndex = 0;
+
   // Fire refresh temp variable
   double prevScrollOffset = 0;
   // keepPositionOffset will be set to 0 during refresh
   double keepPositionOffset = constKeepPositionOffset;
+
+  List<FlutterListViewItemPosition>? itemPositions;
+  double listviewHeight = 0;
 
   @override
   void initState() {
     _loadMessages();
     listViewController.addListener(() {
       const torrentDistance = 40;
-      var pixes = listViewController.position.pixels;
-      if (pixes <= torrentDistance && prevScrollOffset > torrentDistance) {
+      var offset = listViewController.offset;
+      if (offset <= torrentDistance && prevScrollOffset > torrentDistance) {
         if (!refreshController.isRefresh) {
           refreshController.requestRefresh();
-          print("-------------------------------------refresh request");
         }
       }
 
-      prevScrollOffset = pixes;
+      prevScrollOffset = offset;
     });
+
+    listViewController.sliverController.onPaintItemPositionsCallback =
+        (widgetHeight, positions) {
+      itemPositions = positions;
+      listviewHeight = widgetHeight;
+    };
 
     super.initState();
   }
@@ -61,13 +75,13 @@ class _ChatState extends State<Chat> {
   /// It is mockup to load messages from server
   _loadMessages() async {
     await Future.delayed(const Duration(milliseconds: 100));
-    var prevTimes = Random().nextInt(30) + 10;
+    var prevTimes = Random().nextInt(20) + 1;
     for (var i = 0; i < prevTimes; i++) {
       _insertReceiveMessage("The demo also show how to reverse a list in\r\n" *
           (Random().nextInt(4) + 1));
     }
     _insertTagMessage("Last readed");
-    var nextTimes = Random().nextInt(50) + 1;
+    var nextTimes = Random().nextInt(20) + 1;
     for (var i = 0; i < nextTimes; i++) {
       _insertReceiveMessage("The demo also show how to reverse a list in\r\n" *
           (Random().nextInt(4) + 1));
@@ -82,8 +96,8 @@ class _ChatState extends State<Chat> {
     _insertSendMessage(
         "When reverse the list, the item still show on top of list if the messages didn't fill full screen");
 
-    lastReadMessageIndex = messages.length - prevTimes - 1;
-    print("--------------------$lastReadMessageIndex");
+    initIndex = messages.length - prevTimes - 1;
+    print("--------------------$initIndex");
 
     setState(() {});
   }
@@ -138,52 +152,31 @@ class _ChatState extends State<Chat> {
   }
 
   void _onRefresh() async {
-    await Future.delayed(const Duration(milliseconds: 5000));
+    print("------------------------------------_onRefresh");
+    await Future.delayed(const Duration(milliseconds: 2000));
 
-    // Loaded messages in here, but not merge new messages to data to build in here!!!!
-    var newMessages = <ChatModel>[];
-    for (var i = 0; i < 20; i++) {
-      var messageText = "The demo also show how to append message\r\n" *
-          (Random().nextInt(4) + 1);
-      newMessages.add(ChatModel(
-          id: ++currentId, msg: messageText.trim(), type: MessageType.receive));
+    var newMessgeLength = 20;
+
+    for (var i = 0; i < newMessgeLength; i++) {
+      _insertReceiveMessage("The demo also show how to reverse a list in\r\n" *
+          (Random().nextInt(4) + 1));
     }
 
+    var firstIndex = newMessgeLength;
+    var firstOffset = 0.0;
+    if (itemPositions != null && itemPositions!.isNotEmpty) {
+      var firstItemPosition = itemPositions![0];
+      firstIndex = firstItemPosition.index + newMessgeLength;
+      firstOffset =
+          listviewHeight - firstItemPosition.offset - firstItemPosition.height;
+    }
+
+    initIndex = firstIndex;
+    initOffsetBasedOnBottom = false;
+    forceToExecuteInitIndex++;
+    initOffset = firstOffset;
     refreshController.refreshCompleted();
-
-    // It is important!!!1
-    // Merget load message to data in Future
-    WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
-      // It is important to jump to 0
-      // Else it will cause unknown error(Freezen scroll I tested)
-      var oldScrollOffset = listViewController.offset;
-      if (oldScrollOffset < 0) {
-        listViewController.jumpTo(0);
-      }
-
-      // Merget new message to data and set keepPositionOffset to zere
-      // Notice: It make sure listViewController.offset>=0, else if will cause error
-      for (var newMsg in newMessages) {
-        messages.insert(0, newMsg);
-      }
-      keepPositionOffset = 0;
-      setState(() {});
-
-      // Implement to show a little new message
-      // If you don't want the functionality, just remove it.
-      WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
-        if (newMessages.isNotEmpty) {
-          var newScrollOffset = listViewController.offset + oldScrollOffset;
-          listViewController.jumpTo(newScrollOffset);
-        }
-      });
-
-      // Restore keepPositionOffset to make sure have keep position function
-      Future.delayed(const Duration(milliseconds: 10), () {
-        keepPositionOffset = constKeepPositionOffset;
-        setState(() {});
-      });
-    });
+    setState(() {});
   }
 
   void _onLoading() async {
@@ -324,9 +317,10 @@ class _ChatState extends State<Chat> {
                   onItemKey: (index) => messages[index].id.toString(),
                   keepPosition: true,
                   keepPositionOffset: keepPositionOffset,
-                  initIndex: lastReadMessageIndex,
-                  initOffset: 0,
-                  initOffsetBasedOnBottom: true,
+                  initIndex: initIndex,
+                  initOffset: initOffset,
+                  initOffsetBasedOnBottom: initOffsetBasedOnBottom,
+                  forceToExecuteInitIndex: forceToExecuteInitIndex,
                   firstItemAlign: FirstItemAlign.end))),
     );
   }
