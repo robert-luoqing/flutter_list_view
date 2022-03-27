@@ -42,6 +42,11 @@ class _HomePageState extends State<HomePage> {
                 child: const Text("Chat")),
             ElevatedButton(
                 onPressed: () {
+                  Navigator.of(context).pushNamed("/chat2");
+                },
+                child: const Text("Chat2")),
+            ElevatedButton(
+                onPressed: () {
                   Navigator.of(context).pushNamed("/jumpToIndexPage");
                 },
                 child: const Text("Jump to index")),

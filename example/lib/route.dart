@@ -1,4 +1,5 @@
 import 'chat.dart';
+import 'chat2.dart';
 import 'flutter_list_view_performance.dart';
 import 'init_jump.dart';
 import 'init_jump_after_loaddata.dart';
@@ -30,6 +31,7 @@ class SectionViewRoute {
     "/stickyHeaderWithRefresh": (context) => const StickyHeaderWithRefresh(),
     "/jumpToIndexPage": (context) => const JumpToIndexPage(),
     "/chat": (context) => const Chat(),
+    "/chat2": (context) => const Chat2(),
     "/initJumpPage": (context) => const InitJumpPage(),
     "/initJumpAfterLoadDataPage": (context) =>
         const InitJumpAfterLoadDataPage(),

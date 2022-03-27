@@ -19,30 +19,27 @@ class ChatModel {
   MessageType type;
 }
 
-class Chat extends StatefulWidget {
-  const Chat({Key? key}) : super(key: key);
+const constKeepPositionOffset = 40.0;
+
+class Chat2 extends StatefulWidget {
+  const Chat2({Key? key}) : super(key: key);
   @override
-  _ChatState createState() => _ChatState();
+  _Chat2State createState() => _Chat2State();
 }
 
-class _ChatState extends State<Chat> {
+class _Chat2State extends State<Chat2> {
   int currentId = 0;
   List<ChatModel> messages = [];
   final myController = TextEditingController();
   final listViewController = FlutterListViewController();
   final refreshController = RefreshController(initialRefresh: false);
 
-  /// Using init index to control load first messages
   int initIndex = 0;
-  double initOffset = 0.0;
-  bool initOffsetBasedOnBottom = true;
-  int forceToExecuteInitIndex = 0;
 
   // Fire refresh temp variable
   double prevScrollOffset = 0;
-
-  List<FlutterListViewItemPosition>? itemPositions;
-  double listviewHeight = 0;
+  // keepPositionOffset will be set to 0 during refresh
+  double keepPositionOffset = constKeepPositionOffset;
 
   @override
   void initState() {
@@ -58,12 +55,6 @@ class _ChatState extends State<Chat> {
 
       prevScrollOffset = offset;
     });
-
-    listViewController.sliverController.onPaintItemPositionsCallback =
-        (widgetHeight, positions) {
-      itemPositions = positions;
-      listviewHeight = widgetHeight;
-    };
 
     super.initState();
   }
@@ -150,29 +141,24 @@ class _ChatState extends State<Chat> {
   void _onRefresh() async {
     print("------------------------------------_onRefresh");
     await Future.delayed(const Duration(milliseconds: 2000));
-
-    var newMessgeLength = 20;
-
-    for (var i = 0; i < newMessgeLength; i++) {
+    for (var i = 0; i < 20; i++) {
       _insertReceiveMessage("The demo also show how to reverse a list in\r\n" *
           (Random().nextInt(4) + 1));
     }
 
-    var firstIndex = newMessgeLength;
-    var firstOffset = 0.0;
-    if (itemPositions != null && itemPositions!.isNotEmpty) {
-      var firstItemPosition = itemPositions![0];
-      firstIndex = firstItemPosition.index + newMessgeLength;
-      firstOffset =
-          listviewHeight - firstItemPosition.offset - firstItemPosition.height;
-    }
+    keepPositionOffset = 0;
 
-    initIndex = firstIndex;
-    initOffsetBasedOnBottom = false;
-    forceToExecuteInitIndex++;
-    initOffset = firstOffset;
     refreshController.refreshCompleted();
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+
+      Future.delayed(const Duration(milliseconds: 50), (() {
+        if (mounted) {
+          keepPositionOffset = constKeepPositionOffset;
+          setState(() {});
+        }
+      }));
+    }
   }
 
   void _onLoading() async {
@@ -312,11 +298,10 @@ class _ChatState extends State<Chat> {
                   childCount: messages.length,
                   onItemKey: (index) => messages[index].id.toString(),
                   keepPosition: true,
-                  keepPositionOffset: 40,
+                  keepPositionOffset: 0,
                   initIndex: initIndex,
-                  initOffset: initOffset,
-                  initOffsetBasedOnBottom: initOffsetBasedOnBottom,
-                  forceToExecuteInitIndex: forceToExecuteInitIndex,
+                  initOffset: 0,
+                  initOffsetBasedOnBottom: true,
                   firstItemAlign: FirstItemAlign.end))),
     );
   }
