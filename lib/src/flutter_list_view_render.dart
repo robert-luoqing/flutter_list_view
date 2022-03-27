@@ -97,14 +97,15 @@ class FlutterListViewRender extends RenderSliver
 
       childManager.removeAllChildrenToCachedElements();
 
-      if (childManager.indexShoudBeJumpTo != null &&
-          childManager.indexShoudBeJumpTo! < childManager.childCount) {
-        final jumpIndex = childManager.indexShoudBeJumpTo!;
-        final jumpOffset = childManager.indexShoudBeJumpOffset;
-        final offsetBasedOnBottom = childManager.offsetBasedOnBottom;
-        childManager.indexShoudBeJumpTo = null;
-        childManager.indexShoudBeJumpOffset = 0.0;
-        childManager.offsetBasedOnBottom = false;
+      final jumpIndex = childManager.indexShoudBeJumpTo;
+      final jumpOffset = childManager.indexShoudBeJumpOffset;
+      final offsetBasedOnBottom = childManager.offsetBasedOnBottom;
+      // Clear it and make sure not effect to next render
+      childManager.indexShoudBeJumpTo = null;
+      childManager.indexShoudBeJumpOffset = 0.0;
+      childManager.offsetBasedOnBottom = false;
+
+      if (jumpIndex != null && jumpIndex < childManager.childCount) {
         if (_handleJump(jumpIndex, jumpOffset, offsetBasedOnBottom,
             viewportHeight, childConstraints)) {
           return;
@@ -181,7 +182,6 @@ class FlutterListViewRender extends RenderSliver
     // 这段代码用于以下情况
     // 如果记录数为1000, 跳转到每1000条记录时下面会出现空白，并会返弹回去
     // 去掉这个情况，所以加上了这些
-
     if (_isAdjustOperation) {
       var maxRemainArea = childManager.totalItemHeight - viewportHeight;
       if (childManager.totalItemHeight <= viewportHeight &&
@@ -237,6 +237,22 @@ class FlutterListViewRender extends RenderSliver
       to: endRenderChildOffset,
     );
 
+    if (_jumpToElement != null) {
+      var elementOffset = _jumpToElement!.offset;
+      var currentOffset = scrollOffset + compensationScroll;
+      var targetOffsetFromTop = elementOffset - currentOffset;
+      var distance = targetOffsetFromTop - _jumpDistanceFromTop;
+      if (distance != 0.0) {
+        compensationScroll += distance;
+      }
+      if (scrollOffset + compensationScroll < 0) {
+        compensationScroll = -scrollOffset;
+      } else if (scrollOffset + compensationScroll >
+          childManager.totalItemHeight) {
+        compensationScroll = childManager.totalItemHeight - scrollOffset;
+      }
+    }
+
     final double targetEndScrollOffsetForPaint =
         constraints.scrollOffset + constraints.remainingPaintExtent;
     geometry = SliverGeometry(
@@ -255,8 +271,15 @@ class FlutterListViewRender extends RenderSliver
     if (_isAdjustOperation) {
       childManager.notifyPositionChanged();
     }
+    _jumpToElement = null;
     _isAdjustOperation = false;
   }
+
+  // [_jumpToElement] Temp restore jumpToElement
+  // It used to verify does the jump position is correct
+  // [_jumpDistanceFromTop] is store the distance from top
+  FlutterListViewRenderData? _jumpToElement;
+  double _jumpDistanceFromTop = 0;
 
   bool _handleJump(
       int jumpIndex,
@@ -264,43 +287,40 @@ class FlutterListViewRender extends RenderSliver
       bool offsetBasedOnBottom,
       double viewportHeight,
       Constraints childConstraints) {
-    var itemDy = childManager.getScrollOffsetByIndex(jumpIndex);
+    if (jumpIndex >= 0 && jumpIndex < childManager.childCount) {
+      var itemDy = childManager.getScrollOffsetByIndex(jumpIndex);
 
-    late FlutterListViewRenderData chatElem;
-    invokeLayoutCallback((constraints) {
-      chatElem = childManager.constructOneIndexElement(jumpIndex, itemDy, true);
-    });
-    RenderBox child = chatElem.element.renderObject! as RenderBox;
-    child.layout(childConstraints, parentUsesSize: true);
-    var itemHeight = child.size.height;
-    childManager.updateElementPosition(
-        spEle: chatElem,
-        newHeight: itemHeight,
-        needUpdateNextElementOffset: false);
+      invokeLayoutCallback((constraints) {
+        _jumpToElement =
+            childManager.constructOneIndexElement(jumpIndex, itemDy, true);
+      });
+      RenderBox child = _jumpToElement!.element.renderObject! as RenderBox;
+      child.layout(childConstraints, parentUsesSize: true);
+      var itemHeight = child.size.height;
+      childManager.updateElementPosition(
+          spEle: _jumpToElement!,
+          newHeight: itemHeight,
+          needUpdateNextElementOffset: false);
 
-    var scrollDy = itemDy - indexShoudBeJumpOffset;
-    if (offsetBasedOnBottom) {
-      scrollDy =
-          itemDy - (viewportHeight - (indexShoudBeJumpOffset + itemHeight));
-    }
-    if (scrollDy < 0) scrollDy = 0;
+      var scrollDy = itemDy - indexShoudBeJumpOffset;
+      _jumpDistanceFromTop = indexShoudBeJumpOffset;
+      if (offsetBasedOnBottom) {
+        scrollDy =
+            itemDy - (viewportHeight - (indexShoudBeJumpOffset + itemHeight));
+        _jumpDistanceFromTop =
+            viewportHeight - (indexShoudBeJumpOffset + itemHeight);
+      }
 
-    if (constraints.scrollOffset != scrollDy) {
-      _isAdjustOperation = true;
-      geometry = SliverGeometry(
-          scrollExtent: childManager.totalItemHeight,
-          hasVisualOverflow: true,
-          scrollOffsetCorrection: scrollDy - constraints.scrollOffset);
-      return true;
-    }
+      if (scrollDy < 0) scrollDy = 0;
 
-    // scrollDy == 0 To do twice jump.
-    if (scrollDy == 0 && childManager.redoJumpIndexTimes == 0) {
-      childManager.redoJumpIndexTimes++;
-      childManager.indexShoudBeJumpTo = jumpIndex;
-      childManager.indexShoudBeJumpOffset = indexShoudBeJumpOffset;
-      childManager.offsetBasedOnBottom = offsetBasedOnBottom;
-      childManager.markAsInvalid = true;
+      if (constraints.scrollOffset != scrollDy) {
+        _isAdjustOperation = true;
+        geometry = SliverGeometry(
+            scrollExtent: childManager.totalItemHeight,
+            hasVisualOverflow: true,
+            scrollOffsetCorrection: scrollDy - constraints.scrollOffset);
+        return true;
+      }
     }
 
     return false;

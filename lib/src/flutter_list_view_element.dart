@@ -58,7 +58,6 @@ class FlutterListViewElement extends RenderObjectElement {
 
     if (needJump) {
       indexShoudBeJumpTo = newInitIndex;
-      redoJumpIndexTimes = 0;
       indexShoudBeJumpOffset = newInitOffset;
       offsetBasedOnBottom = newInitOffsetBasedOnBottom;
       markAsInvalid = true;
@@ -98,7 +97,6 @@ class FlutterListViewElement extends RenderObjectElement {
   /// [indexShoudBeJumpTo] is mean not jump to
   /// [redoJumpIndexTimes] is used to two times evalute the position
   int? indexShoudBeJumpTo;
-  int redoJumpIndexTimes = 0;
   double indexShoudBeJumpOffset = 0.0;
 
   /// [offsetBasedOnBottom] only apply to jumpTo and comunicate with render
@@ -154,7 +152,6 @@ class FlutterListViewElement extends RenderObjectElement {
     assert(index >= 0 && index < childCount,
         "Index should be >=0 and  <= child count");
     indexShoudBeJumpTo = index;
-    redoJumpIndexTimes = 0;
     indexShoudBeJumpOffset = offset;
     offsetBasedOnBottom = basedOnBottom;
     markAsInvalid = true;

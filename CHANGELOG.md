@@ -52,7 +52,10 @@
 * Fixed jump to index or init index will scroll to wrong position when initOffsetBasedOnBottom: true
 
 ## 1.1.7
-* Fixed when remove all item and jump to index was set, onItemKey will get wrong.
+* Fixed when remove all items and jump to index was set, onItemKey will get wrong.
+
+## 1.1.8
+* Fixed when remove some items, onItemKey will get wrong.
 
 ## TODO
 * Add horizontal scroll support
