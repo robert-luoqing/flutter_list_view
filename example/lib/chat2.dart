@@ -5,6 +5,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_list_view/flutter_list_view.dart';
 import 'package:flutter/material.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:shimmer/shimmer.dart';
+
+import 'list_skeleton.dart';
 
 enum MessageType {
   sent,
@@ -245,7 +248,7 @@ class _Chat2State extends State<Chat2> {
               if (mode == RefreshStatus.idle) {
                 body = const Text("Pull up load prev msg");
               } else if (mode == RefreshStatus.refreshing) {
-                body = const CupertinoActivityIndicator();
+                body = const ListSkeleton(line: 2);
               } else if (mode == RefreshStatus.failed) {
                 body = const Text("Load Failed!Click retry!");
               } else if (mode == RefreshStatus.canRefresh) {

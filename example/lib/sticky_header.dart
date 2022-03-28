@@ -86,6 +86,7 @@ class _StickyHeaderState extends State<StickyHeader> {
     return Scaffold(
       appBar: AppBar(title: const Text("Stick Header")),
       body: FlutterListView(
+          reverse: true,
           delegate: FlutterListViewDelegate(
             (BuildContext context, int index) {
               var data = _countries[index];

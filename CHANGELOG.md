@@ -57,6 +57,9 @@
 ## 1.1.8
 * Fixed when remove some items, onItemKey will get wrong.
 
+## 1.1.10
+* Sticky header support reverse
+
 ## TODO
 * Add horizontal scroll support
 * Add creating items when flutter list view created

@@ -605,15 +605,27 @@ class FlutterListViewRender extends RenderSliver
     if (childManager.stickyElement != null) {
       var stickyRenderObj =
           childManager.stickyElement!.element.renderObject! as RenderBox;
+
       if (nextStickyOffset == null ||
           nextStickyOffset.dy > stickyRenderObj.size.height) {
-        context.paintChild(stickyRenderObj, offset);
-        paintedElements.add(childManager.stickyElement!);
+        var stickyOffsetDy = offset.dy;
+
+        if (growInfo.axisDirection == AxisDirection.up) {
+          stickyOffsetDy =
+              constraints.viewportMainAxisExtent - stickyRenderObj.size.height;
+        }
+
+        context.paintChild(stickyRenderObj, Offset(offset.dx, stickyOffsetDy));
       } else {
         var stickyOffsetDy = nextStickyOffset.dy - stickyRenderObj.size.height;
+        if (growInfo.axisDirection == AxisDirection.up) {
+          stickyOffsetDy = constraints.viewportMainAxisExtent -
+              stickyRenderObj.size.height -
+              stickyOffsetDy;
+        }
         context.paintChild(stickyRenderObj, Offset(0, stickyOffsetDy));
-        paintedElements.add(childManager.stickyElement!);
       }
+      paintedElements.add(childManager.stickyElement!);
     }
 
     // Nofify the items has repaint and offset/height may changed
