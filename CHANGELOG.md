@@ -60,6 +60,9 @@
 ## 1.1.10
 * Sticky header support reverse
 
+## 1.1.11
+* Fixed support PopupMenuButton
+
 ## TODO
 * Add horizontal scroll support
 * Add creating items when flutter list view created

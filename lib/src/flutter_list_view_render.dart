@@ -614,8 +614,8 @@ class FlutterListViewRender extends RenderSliver
           stickyOffsetDy =
               constraints.viewportMainAxisExtent - stickyRenderObj.size.height;
         }
-
-        context.paintChild(stickyRenderObj, Offset(offset.dx, stickyOffsetDy));
+        var childOffset = Offset(offset.dx, stickyOffsetDy);
+        context.paintChild(stickyRenderObj, childOffset);
       } else {
         var stickyOffsetDy = nextStickyOffset.dy - stickyRenderObj.size.height;
         if (growInfo.axisDirection == AxisDirection.up) {
@@ -623,7 +623,8 @@ class FlutterListViewRender extends RenderSliver
               stickyRenderObj.size.height -
               stickyOffsetDy;
         }
-        context.paintChild(stickyRenderObj, Offset(0, stickyOffsetDy));
+        var childOffset = Offset(0, stickyOffsetDy);
+        context.paintChild(stickyRenderObj, childOffset);
       }
       paintedElements.add(childManager.stickyElement!);
     }
@@ -725,16 +726,16 @@ class FlutterListViewRender extends RenderSliver
 
   @override
   void applyPaintTransform(covariant RenderBox child, Matrix4 transform) {
-    final SliverMultiBoxAdaptorParentData childParentData =
-        child.parentData! as SliverMultiBoxAdaptorParentData;
-    if (childParentData.index == null) {
-      // If the child has no index, such as with the prototype of a
-      // SliverPrototypeExtentList, then it is not visible, so we give it a
-      // zero transform to prevent it from painting.
-      transform.setZero();
-    } else {
-      applyPaintTransformForBoxChild(child, transform);
-    }
+    // final SliverMultiBoxAdaptorParentData childParentData =
+    //     child.parentData! as SliverMultiBoxAdaptorParentData;
+    // if (childParentData.index == null) {
+    //   // If the child has no index, such as with the prototype of a
+    //   // SliverPrototypeExtentList, then it is not visible, so we give it a
+    //   // zero transform to prevent it from painting.
+    //   transform.setZero();
+    // } else {
+    applyPaintTransformForBoxChild(child, transform);
+    // }
   }
 
   @override
