@@ -314,6 +314,24 @@ class FlutterListViewElement extends RenderObjectElement {
     return false;
   }
 
+  bool get stickyAtTailer {
+    if (widget.delegate is FlutterListViewDelegate) {
+      var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
+      return flutterListDelegate.stickyAtTailer;
+    }
+
+    return false;
+  }
+
+  bool get isSupportSticky {
+    if (widget.delegate is FlutterListViewDelegate) {
+      var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
+      return flutterListDelegate.onItemSticky != null;
+    }
+
+    return false;
+  }
+
   setItemHeight(String key, double height) {
     if (!_isInScrolling) {
       _itemHeights[key] = height;

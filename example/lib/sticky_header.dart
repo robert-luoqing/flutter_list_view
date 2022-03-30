@@ -98,6 +98,7 @@ class _StickyHeaderState extends State<StickyHeader> {
             },
             childCount: _countries.length,
             onItemSticky: (index) => _countries[index] is AlphabetHeader,
+            stickyAtTailer: true,
           ),
           controller: controller),
     );
