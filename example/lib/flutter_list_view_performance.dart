@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_list_view/flutter_list_view.dart';
 
+import 'item.dart';
+
 class FlutterListViewPerformance extends StatefulWidget {
   const FlutterListViewPerformance({Key? key}) : super(key: key);
 
@@ -20,9 +22,7 @@ class _FlutterListViewPerformanceState
         body: FlutterListView(
             delegate: SliverChildBuilderDelegate(
           (context, index) {
-            return ListTile(
-              title: Text("List Item $index"),
-            );
+            return Item(index: index);
           },
           childCount: 1000000,
         )));

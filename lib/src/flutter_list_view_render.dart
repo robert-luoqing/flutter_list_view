@@ -209,14 +209,14 @@ class FlutterListViewRender extends RenderSliver
         _determineHeaderStickyElement(childConstraints);
       }
     }
-    if (childManager.cachedElements.isNotEmpty) {
-      invokeLayoutCallback((constraints) {
-        for (var item in childManager.cachedElements) {
-          childManager.removeChildElement(item.element);
-        }
-      });
-      childManager.cachedElements.clear();
-    }
+    // if (childManager.cachedElements.isNotEmpty) {
+    //   invokeLayoutCallback((constraints) {
+    //     for (var item in childManager.cachedElements) {
+    //       childManager.removeChildElement(item.element);
+    //     }
+    //   });
+    //   childManager.cachedElements.clear();
+    // }
 
     double firstRenderChildOffset = 0;
     double endRenderChildOffset = 0;
