@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 
 import 'flutter_list_view_render.dart';
 import 'flutter_list_view_render_data.dart';
+import 'height_manager.dart';
 
 class FlutterListViewElement extends RenderObjectElement {
   FlutterListViewElement(FlutterSliverList widget) : super(widget) {
@@ -14,7 +15,7 @@ class FlutterListViewElement extends RenderObjectElement {
         widget.controller!.stickyIndex.value = stickyElement!.index;
       }
     }
-
+    _heightManager.delegate = widget.delegate;
     _handleInitIndex(widget.delegate, null);
   }
 
@@ -68,6 +69,7 @@ class FlutterListViewElement extends RenderObjectElement {
   void update(covariant FlutterSliverList newWidget) {
     final FlutterSliverList oldWidget = widget;
     super.update(newWidget);
+
     if (oldWidget.controller != newWidget.controller) {
       if (oldWidget.controller != null) {
         oldWidget.controller!.detach();
@@ -79,6 +81,7 @@ class FlutterListViewElement extends RenderObjectElement {
         }
       }
     }
+    _heightManager.delegate = newWidget.delegate;
 
     final SliverChildDelegate newDelegate = newWidget.delegate;
     final SliverChildDelegate oldDelegate = oldWidget.delegate;
@@ -112,6 +115,9 @@ class FlutterListViewElement extends RenderObjectElement {
   /// It may cause scroll back
   bool _isInScrolling = false;
 
+  /// Height manager which include store height and calc item position etc
+  HeightManager _heightManager = CommonHeightManager();
+
   @override
   FlutterSliverList get widget => super.widget as FlutterSliverList;
 
@@ -136,17 +142,11 @@ class FlutterListViewElement extends RenderObjectElement {
   /// Current sticky element which show on top of list
   FlutterListViewRenderData? stickyElement;
 
-  /// It will store the height of item which has rendered or provide by feedback
-  final Map<String, double> _itemHeights = {};
-
   /// The cache'd element. These element will be reused
   final List<FlutterListViewRenderData> _cachedElements = [];
   List<FlutterListViewRenderData> get cachedElements => _cachedElements;
 
-  /// 总的item的高度
-  double _totalItemHeight = 0;
-
-  double get totalItemHeight => _totalItemHeight;
+  double get totalItemHeight => _heightManager.totalItemHeight;
 
   void jumpToIndex(int index, double offset, bool basedOnBottom) {
     assert(index >= 0 && index < childCount,
@@ -171,7 +171,8 @@ class FlutterListViewElement extends RenderObjectElement {
     var viewportHeight = flutterListViewRender.currentViewportHeight ?? 0;
 
     if (basedOnBottom) {
-      var itemHeight = getItemHeight(getKeyByItemIndex(index), index);
+      var itemHeight =
+          _heightManager.getItemHeight(getKeyByItemIndex(index), index);
       scrollOffset = scrollOffset - (viewportHeight - itemHeight - offset);
     } else {
       scrollOffset -= offset;
@@ -285,24 +286,6 @@ class FlutterListViewElement extends RenderObjectElement {
     return 0;
   }
 
-  /// [_itemHeights]维护着已经layout的高度, 如果_itemHeights有，则取这个高度
-  /// 没有，则返回preferHeight或后面扩展的接口（要用户提供的Height）
-  double getItemHeight(String key, int index) {
-    if (_itemHeights.containsKey(key)) {
-      return _itemHeights[key]!;
-    } else {
-      if (widget.delegate is FlutterListViewDelegate) {
-        var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
-        if (flutterListDelegate.onItemHeight != null) {
-          return flutterListDelegate.onItemHeight!(index);
-        } else {
-          return flutterListDelegate.preferItemHeight;
-        }
-      }
-      return 50.0;
-    }
-  }
-
   bool queryIsStickyItemByIndex(int index) {
     if (widget.delegate is FlutterListViewDelegate) {
       var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
@@ -332,9 +315,9 @@ class FlutterListViewElement extends RenderObjectElement {
     return false;
   }
 
-  setItemHeight(String key, double height) {
+  setItemHeight(String key, int index, double height) {
     if (!_isInScrolling) {
-      _itemHeights[key] = height;
+      _heightManager.setItemHeight(key, index, height);
     }
   }
 
@@ -350,54 +333,15 @@ class FlutterListViewElement extends RenderObjectElement {
 
   /// 只有当total count发生变化或第一次时，会调用
   void calcTotalItemHeight() {
-    // To enhance performance when childcount more than 1 milloion
-    // Because it will loop 1 milloion times
-    // double height = 0;
-    // for (var i = 0; i < childCount; i++) {
-    //   height += getItemHeight(getKeyByItemIndex(i), i);
-    // }
-    // _totalItemHeight = height;
-
-    // 以下是重写该方法
-    var hasCalced = false;
-    if (widget.delegate is FlutterListViewDelegate) {
-      var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
-      if (flutterListDelegate.onItemKey != null ||
-          flutterListDelegate.onItemHeight != null) {
-        double height = 0;
-        for (var i = 0; i < childCount; i++) {
-          height += getItemHeight(getKeyByItemIndex(i), i);
-        }
-        _totalItemHeight = height;
-        hasCalced = true;
-      }
-    }
-
-    if (hasCalced == false) {
-      double height = 0;
-      int calcItemCount = 0;
-      for (var index in _itemHeights.keys) {
-        if (int.parse(index) < childCount) {
-          height += _itemHeights[index]!;
-          calcItemCount++;
-        }
-      }
-      var itemHeight = 50.0;
-      if (widget.delegate is FlutterListViewDelegate) {
-        var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
-        itemHeight = flutterListDelegate.preferItemHeight;
-      }
-
-      height += ((childCount - calcItemCount) * itemHeight);
-      _totalItemHeight = height;
-    }
+    _heightManager.calcTotalItemHeight(
+        childCount: childCount, getKeyByItemIndex: getKeyByItemIndex);
   }
 
   double getScrollOffsetByIndex(int index) {
     var offset = 0.0;
     for (var i = 0; i < index; i++) {
       var itemKey = getKeyByItemIndex(i);
-      var itemHeight = getItemHeight(itemKey, i);
+      var itemHeight = _heightManager.getItemHeight(itemKey, i);
       offset += itemHeight;
     }
     return offset;
@@ -508,13 +452,15 @@ class FlutterListViewElement extends RenderObjectElement {
   }) {
     var oldHeight = spEle.height;
     var diff = height - oldHeight;
-    _totalItemHeight += diff;
+    _heightManager.increaseTotalItemHeight(diff);
+
     spEle.offset = offset;
     spEle.height = height;
     final parentData = spEle.element.renderObject!.parentData!
         as SliverMultiBoxAdaptorParentData;
     parentData.layoutOffset = spEle.offset;
-    setItemHeight(getKeyByItemIndex(spEle.index), height);
+    _heightManager.setItemHeight(
+        getKeyByItemIndex(spEle.index), spEle.index, height);
     return diff;
   }
 
@@ -527,7 +473,7 @@ class FlutterListViewElement extends RenderObjectElement {
     }
 
     var itemKey = getKeyByItemIndex(index);
-    var height = getItemHeight(itemKey, index);
+    var height = _heightManager.getItemHeight(itemKey, index);
     var isSticky = queryIsStickyItemByIndex(index);
     var result = FlutterListViewRenderData(
         element: newElement!,
@@ -568,24 +514,15 @@ class FlutterListViewElement extends RenderObjectElement {
         _renderedElements.add(result);
       }
     } else {
-      // 构造第一个显示的元素
-      var accuHeight = 0.0;
-      var firstIndex = 0;
-      for (var i = 0; i < childCount; i++) {
-        double startOffset = scrollOffset - cacheExtent;
-        if (startOffset < 0) {
-          startOffset = 0;
-        }
-        var itemHeight = getItemHeight(getKeyByItemIndex(i), i);
-        if (accuHeight <= startOffset &&
-            (accuHeight + itemHeight) >= startOffset) {
-          firstIndex = i;
-          result = _createOrReuseElement(firstIndex);
-          result.offset = accuHeight;
-          _renderedElements.add(result);
-          break;
-        }
-        accuHeight += itemHeight;
+      var matchedResult = _heightManager.getFirstItemByScrollOffset(
+          childCount: childCount,
+          scrollOffset: scrollOffset,
+          cacheExtent: cacheExtent,
+          getKeyByItemIndex: getKeyByItemIndex);
+      if (matchedResult != null) {
+        result = _createOrReuseElement(matchedResult.index);
+        result.offset = matchedResult.accuHeight;
+        _renderedElements.add(result);
       }
     }
 
