@@ -1,50 +1,73 @@
 import 'package:flutter/widgets.dart';
 
-import 'flutter_list_view_delegate.dart';
+import '../flutter_list_view.dart';
+import 'height_manager.dart';
 
-class MatchScrollOffsetResult {
-  MatchScrollOffsetResult({required this.index, required this.accuHeight});
-  int index;
-  double accuHeight;
+class HeightList {
+  final _indexList = <int>[];
+  final Map<int, double> _itemHeights = {};
+
+  get indexList => _indexList;
+
+  void addHeight(int index, double height) {
+    _itemHeights[index] = height;
+    // Maintain the orders
+    var length = _indexList.length;
+    if (length == 0) {
+      _indexList.add(index);
+    } else {
+      bool found = false;
+      int startIndex = 0;
+      int endIndex = length - 1;
+      int assertIndex = ((endIndex - startIndex) / 2).floor();
+      while (true) {
+        if (endIndex == startIndex) {
+          if (_indexList[startIndex] == index) {
+            found = true;
+            assertIndex = startIndex;
+          } else if (_indexList[startIndex] > index) {
+            found = false;
+            assertIndex = startIndex;
+          } else {
+            found = false;
+            assertIndex = startIndex + 1;
+          }
+          break;
+        }
+
+        if (_indexList[assertIndex] == index) {
+          found = true;
+          break;
+        } else if (_indexList[assertIndex] > index) {
+          endIndex = assertIndex - 1;
+          assertIndex = startIndex + ((endIndex - startIndex) / 2).floor();
+        } else {
+          startIndex = assertIndex + 1;
+          assertIndex = startIndex + ((endIndex - startIndex) / 2).floor();
+        }
+      }
+      if (!found) {
+        _indexList.insert(assertIndex, index);
+      }
+    }
+  }
+
+  double? getHeight(int index) {
+    return _itemHeights[index];
+  }
+
+  void clear() {
+    _indexList.clear();
+    _itemHeights.clear();
+  }
 }
 
-abstract class HeightManager {
-  set delegate(SliverChildDelegate d);
-  SliverChildDelegate get delegate;
-
-  double getItemHeight(String key, int index);
-  setItemHeight(String key, int index, double height);
-
-  /// Total item height
-  double get totalItemHeight;
-
-  /// Calc item height
-  /// The method will be invoke when No RenderedElement on render
-  void calcTotalItemHeight(
-      {required int childCount,
-      required String Function(int index) getKeyByItemIndex});
-
-  /// It will invoke when the estimate item height difference with actual item height which fetched by layout
-  void increaseTotalItemHeight(double diff);
-
-  /// When scroll to a position, it need fetch first item.
-  MatchScrollOffsetResult? getFirstItemByScrollOffset(
-      {required int childCount,
-      required double scrollOffset,
-      required double cacheExtent,
-      required String Function(int index) getKeyByItemIndex});
-
-  double getScrollOffsetByIndex(
-      {required int index,
-      required double offset,
-      required bool basedOnBottom,
-      required double viewportHeight,
-      required String Function(int index) getKeyByItemIndex});
-}
-
-class CommonHeightManager implements HeightManager {
+class EffectiveHeightManager implements HeightManager {
   /// It will store the height of item which has rendered or provide by feedback
   final Map<String, double> _itemHeights = {};
+
+  final HeightList _itemHeightObj = HeightList();
+
   SliverChildDelegate? _delegate;
 
   /// 总的item的高度
@@ -170,22 +193,6 @@ class CommonHeightManager implements HeightManager {
       required bool basedOnBottom,
       required double viewportHeight,
       required String Function(int index) getKeyByItemIndex}) {
-    var scrollOffset = 0.0;
-    for (var i = 0; i < index; i++) {
-      var itemKey = getKeyByItemIndex(i);
-      var itemHeight = getItemHeight(itemKey, i);
-      scrollOffset += itemHeight;
-    }
-
-    if (basedOnBottom) {
-      var itemHeight = getItemHeight(getKeyByItemIndex(index), index);
-      scrollOffset = scrollOffset - (viewportHeight - itemHeight - offset);
-    } else {
-      scrollOffset -= offset;
-    }
-
-    if (scrollOffset < 0) scrollOffset = 0;
-
-    return scrollOffset;
+    return 0;
   }
 }

@@ -121,6 +121,10 @@ class FlutterListViewRender extends RenderSliver
       childManager.removeOutOfScopeElements(scrollOffset, viewportHeight);
     }
 
+    if(childManager.renderedElements.isEmpty) {
+      childManager.calcTotalItemHeight();
+    }
+
     /// It the prev element's height not same with prefer's
     /// We need correct scrollOffset
     double compensationScroll = 0;

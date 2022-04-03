@@ -166,19 +166,15 @@ class FlutterListViewElement extends RenderObjectElement {
     assert(index >= 0 && index < childCount,
         "Index should be >=0 and  <= child count");
 
-    var scrollOffset = getScrollOffsetByIndex(index);
     var flutterListViewRender = renderObject as FlutterListViewRender;
     var viewportHeight = flutterListViewRender.currentViewportHeight ?? 0;
 
-    if (basedOnBottom) {
-      var itemHeight =
-          _heightManager.getItemHeight(getKeyByItemIndex(index), index);
-      scrollOffset = scrollOffset - (viewportHeight - itemHeight - offset);
-    } else {
-      scrollOffset -= offset;
-    }
-
-    if (scrollOffset < 0) scrollOffset = 0;
+    var scrollOffset = _heightManager.getScrollOffsetByIndex(
+        index: index,
+        offset: offset,
+        basedOnBottom: basedOnBottom,
+        viewportHeight: viewportHeight,
+        getKeyByItemIndex: getKeyByItemIndex);
 
     supressElementGenerate = false;
     if (widget.delegate is FlutterListViewDelegate) {
@@ -198,6 +194,17 @@ class FlutterListViewElement extends RenderObjectElement {
     }
 
     jumpToIndex(index, offset, basedOnBottom);
+  }
+
+  double getScrollOffsetByIndex(int index) {
+    var flutterListViewRender = renderObject as FlutterListViewRender;
+    var viewportHeight = flutterListViewRender.currentViewportHeight ?? 0;
+    return _heightManager.getScrollOffsetByIndex(
+        index: index,
+        offset: 0,
+        basedOnBottom: false,
+        viewportHeight: viewportHeight,
+        getKeyByItemIndex: getKeyByItemIndex);
   }
 
   void ensureVisible(int index, double offset, bool basedOnBottom) {
@@ -335,16 +342,6 @@ class FlutterListViewElement extends RenderObjectElement {
   void calcTotalItemHeight() {
     _heightManager.calcTotalItemHeight(
         childCount: childCount, getKeyByItemIndex: getKeyByItemIndex);
-  }
-
-  double getScrollOffsetByIndex(int index) {
-    var offset = 0.0;
-    for (var i = 0; i < index; i++) {
-      var itemKey = getKeyByItemIndex(i);
-      var itemHeight = _heightManager.getItemHeight(itemKey, i);
-      offset += itemHeight;
-    }
-    return offset;
   }
 
   /// 用于找到并构造当前屏的Element
