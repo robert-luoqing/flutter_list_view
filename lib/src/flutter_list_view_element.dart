@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import 'effective_height_manager.dart';
 import 'flutter_list_view_render.dart';
 import 'flutter_list_view_render_data.dart';
 import 'height_manager.dart';
@@ -116,7 +117,8 @@ class FlutterListViewElement extends RenderObjectElement {
   bool _isInScrolling = false;
 
   /// Height manager which include store height and calc item position etc
-  HeightManager _heightManager = CommonHeightManager();
+  final HeightManager _heightManager = EffectiveHeightManager();
+  // final HeightManager _heightManager = CommonHeightManager();
 
   @override
   FlutterSliverList get widget => super.widget as FlutterSliverList;

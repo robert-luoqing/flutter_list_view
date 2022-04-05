@@ -9,7 +9,7 @@ class HeightList {
 
   get indexList => _indexList;
 
-  void addHeight(int index, double height) {
+  void setHeight(int index, double height) {
     _itemHeights[index] = height;
     // Maintain the orders
     var length = _indexList.length;
@@ -40,9 +40,11 @@ class HeightList {
           break;
         } else if (_indexList[assertIndex] > index) {
           endIndex = assertIndex - 1;
+          if (endIndex < startIndex) endIndex = startIndex;
           assertIndex = startIndex + ((endIndex - startIndex) / 2).floor();
         } else {
           startIndex = assertIndex + 1;
+          if (startIndex > endIndex) startIndex = endIndex;
           assertIndex = startIndex + ((endIndex - startIndex) / 2).floor();
         }
       }
@@ -63,9 +65,6 @@ class HeightList {
 }
 
 class EffectiveHeightManager implements HeightManager {
-  /// It will store the height of item which has rendered or provide by feedback
-  final Map<String, double> _itemHeights = {};
-
   final HeightList _itemHeightObj = HeightList();
 
   SliverChildDelegate? _delegate;
@@ -87,16 +86,13 @@ class EffectiveHeightManager implements HeightManager {
   /// 没有，则返回preferHeight或后面扩展的接口（要用户提供的Height）
   @override
   double getItemHeight(String key, int index) {
-    if (_itemHeights.containsKey(key)) {
-      return _itemHeights[key]!;
+    var existHeight = _itemHeightObj.getHeight(index);
+    if (existHeight != null) {
+      return existHeight;
     } else {
       if (delegate is FlutterListViewDelegate) {
         var flutterListDelegate = delegate as FlutterListViewDelegate;
-        if (flutterListDelegate.onItemHeight != null) {
-          return flutterListDelegate.onItemHeight!(index);
-        } else {
-          return flutterListDelegate.preferItemHeight;
-        }
+        return flutterListDelegate.preferItemHeight;
       }
       return 50.0;
     }
@@ -104,7 +100,7 @@ class EffectiveHeightManager implements HeightManager {
 
   @override
   setItemHeight(String key, int index, double height) {
-    _itemHeights[key] = height;
+    _itemHeightObj.setHeight(index, height);
   }
 
   /// 只有当total count发生变化或第一次时，会调用
@@ -112,48 +108,14 @@ class EffectiveHeightManager implements HeightManager {
   void calcTotalItemHeight(
       {required int childCount,
       required String Function(int index) getKeyByItemIndex}) {
-    // To enhance performance when childcount more than 1 milloion
-    // Because it will loop 1 milloion times
-    // double height = 0;
-    // for (var i = 0; i < childCount; i++) {
-    //   height += getItemHeight(getKeyByItemIndex(i), i);
-    // }
-    // _totalItemHeight = height;
-
-    // 以下是重写该方法
-    var hasCalced = false;
+    _itemHeightObj.clear();
+    var preferHeight = 50.0;
     if (delegate is FlutterListViewDelegate) {
       var flutterListDelegate = delegate as FlutterListViewDelegate;
-      if (flutterListDelegate.onItemKey != null ||
-          flutterListDelegate.onItemHeight != null) {
-        double height = 0;
-
-        for (var i = 0; i < childCount; i++) {
-          height += getItemHeight(getKeyByItemIndex(i), i);
-        }
-        _totalItemHeight = height;
-        hasCalced = true;
-      }
+      preferHeight = flutterListDelegate.preferItemHeight;
     }
 
-    if (hasCalced == false) {
-      double height = 0;
-      int calcItemCount = 0;
-      for (var index in _itemHeights.keys) {
-        if (int.parse(index) < childCount) {
-          height += _itemHeights[index]!;
-          calcItemCount++;
-        }
-      }
-      var itemHeight = 50.0;
-      if (delegate is FlutterListViewDelegate) {
-        var flutterListDelegate = delegate as FlutterListViewDelegate;
-        itemHeight = flutterListDelegate.preferItemHeight;
-      }
-
-      height += ((childCount - calcItemCount) * itemHeight);
-      _totalItemHeight = height;
-    }
+    _totalItemHeight = preferHeight * childCount;
   }
 
   @override
@@ -167,20 +129,54 @@ class EffectiveHeightManager implements HeightManager {
       required double scrollOffset,
       required double cacheExtent,
       required String Function(int index) getKeyByItemIndex}) {
-    // 构造第一个显示的元素
-    var accuHeight = 0.0;
+    var preferHeight = 50.0;
+    if (delegate is FlutterListViewDelegate) {
+      var flutterListDelegate = delegate as FlutterListViewDelegate;
+      preferHeight = flutterListDelegate.preferItemHeight;
+    }
 
-    for (var i = 0; i < childCount; i++) {
-      double startOffset = scrollOffset - cacheExtent;
-      if (startOffset < 0) {
-        startOffset = 0;
+    // 估算Index
+    double startOffset = scrollOffset - cacheExtent;
+    if (startOffset < 0) {
+      startOffset = 0;
+    }
+
+    var estimateIndex = (startOffset / preferHeight).floor();
+    if (estimateIndex >= childCount) {
+      estimateIndex = childCount - 1;
+    }
+    // Estimate offset of estimateIndex
+    var estimateOffset = estimateIndex * preferHeight;
+
+    // Fixed estimate offset
+    for (var renderedItemIndex in _itemHeightObj._indexList) {
+      if (renderedItemIndex <= estimateIndex) {
+        var existHeight = _itemHeightObj.getHeight(renderedItemIndex);
+        if (existHeight != null) {
+          estimateOffset += (existHeight - preferHeight);
+        }
       }
-      var itemHeight = getItemHeight(getKeyByItemIndex(i), i);
-      if (accuHeight <= startOffset &&
-          (accuHeight + itemHeight) >= startOffset) {
-        return MatchScrollOffsetResult(index: i, accuHeight: accuHeight);
+    }
+
+    if (estimateOffset <= startOffset) {
+      for (var i = estimateIndex + 1; i < childCount; i++) {
+        var itemHeight = getItemHeight(getKeyByItemIndex(i), i);
+        if (estimateOffset <= startOffset &&
+            (estimateOffset + itemHeight) >= startOffset) {
+          return MatchScrollOffsetResult(index: i, accuHeight: estimateOffset);
+        }
+        estimateOffset += itemHeight;
       }
-      accuHeight += itemHeight;
+    } else {
+      for (var i = estimateIndex - 1; i >= 0; i--) {
+        var itemHeight = getItemHeight(getKeyByItemIndex(i), i);
+        if (estimateOffset - itemHeight <= startOffset &&
+            estimateOffset >= startOffset) {
+          return MatchScrollOffsetResult(
+              index: i, accuHeight: estimateOffset - itemHeight);
+        }
+        estimateOffset -= itemHeight;
+      }
     }
 
     return null;
@@ -193,6 +189,34 @@ class EffectiveHeightManager implements HeightManager {
       required bool basedOnBottom,
       required double viewportHeight,
       required String Function(int index) getKeyByItemIndex}) {
-    return 0;
+    var preferHeight = 50.0;
+    if (delegate is FlutterListViewDelegate) {
+      var flutterListDelegate = delegate as FlutterListViewDelegate;
+      preferHeight = flutterListDelegate.preferItemHeight;
+    }
+
+    // Estimate offset of estimateIndex
+    var estimateOffset = index * preferHeight;
+
+    // Fixed estimate offset
+    for (var renderedItemIndex in _itemHeightObj._indexList) {
+      if (renderedItemIndex <= index) {
+        var existHeight = _itemHeightObj.getHeight(renderedItemIndex);
+        if (existHeight != null) {
+          estimateOffset += (existHeight - preferHeight);
+        }
+      }
+    }
+
+    if (basedOnBottom) {
+      var itemHeight = getItemHeight(getKeyByItemIndex(index), index);
+      estimateOffset = estimateOffset - (viewportHeight - itemHeight - offset);
+    } else {
+      estimateOffset -= offset;
+    }
+
+    if (estimateOffset < 0) estimateOffset = 0;
+
+    return estimateOffset;
   }
 }

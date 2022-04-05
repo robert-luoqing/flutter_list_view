@@ -22,6 +22,13 @@
       "type": "dart"
     },
     {
+      "name": "example web",
+      "cwd": "example",
+      "request": "launch",
+      "type": "dart",
+      "args": ["-d", "chrome"]
+    },
+    {
       "name": "example (profile mode)",
       "cwd": "example",
       "request": "launch",
