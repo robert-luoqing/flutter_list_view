@@ -79,6 +79,12 @@ class FlutterListViewRender extends RenderSliver
 
     final SliverConstraints constraints = this.constraints;
 
+    // layout between start and end
+    final double targetStartScrollOffset =
+        constraints.scrollOffset + constraints.cacheOrigin;
+    final double targetEndScrollOffset =
+        targetStartScrollOffset + constraints.remainingCacheExtent;
+
     // print("cacheOrigin: ${constraints.cacheOrigin}");
 
     // final double scrollOffset =
@@ -147,8 +153,7 @@ class FlutterListViewRender extends RenderSliver
     while (true) {
       FlutterListViewRenderData? spElement;
       invokeLayoutCallback((constraints) {
-        spElement =
-            childManager.constructPrevElement(scrollOffset, viewportHeight);
+        spElement = childManager.constructPrevElement(targetStartScrollOffset);
       });
       if (spElement == null) break;
       RenderBox child = spElement!.element.renderObject! as RenderBox;
@@ -165,8 +170,8 @@ class FlutterListViewRender extends RenderSliver
     while (true) {
       FlutterListViewRenderData? spElement;
       invokeLayoutCallback((constraints) {
-        spElement =
-            childManager.constructNextElement(scrollOffset, viewportHeight);
+        spElement = childManager.constructNextElement(
+            targetStartScrollOffset, targetEndScrollOffset);
       });
 
       if (spElement == null) break;

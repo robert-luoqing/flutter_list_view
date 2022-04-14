@@ -66,6 +66,9 @@
 ## 1.1.12
 * Support stickyAtTailer in FlutterListView
 
+## 1.1.12
+* Support cacheExtent in FlutterListView
+
 ## TODO
 * Add horizontal scroll support
 * Add creating items when flutter list view created

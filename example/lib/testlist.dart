@@ -146,22 +146,24 @@ class _TestListPageState extends State<TestListPage> {
                 child: CustomScrollView(
                   controller: scrollController,
                   reverse: reverse,
+                  cacheExtent: 100,
                   slivers: [
                     // buildSliverList(15),
                     FlutterSliverList(
                         controller: flutterListViewController,
                         delegate: FlutterListViewDelegate(
-                            (BuildContext context, int index) => Container(
-                                  color: Colors.white,
-                                  child: ListTile(
-                                      title: Text('List Item ${data[index]}')),
-                                ),
-                            onItemSticky: (index) {
-                              if (index == 2 || index == 7) {
-                                return true;
-                              }
-                              return false;
-                            },
+                            (BuildContext context, int index) {
+                          return Container(
+                            color: Colors.white,
+                            child: ListTile(
+                                title: Text('List Item ${data[index]}')),
+                          );
+                        }, onItemSticky: (index) {
+                          // if (index == 2 || index == 7) {
+                          //   return true;
+                          // }
+                          return false;
+                        },
                             childCount: data.length,
                             onItemKey: (index) => data[index].toString(),
                             keepPosition: keepPosition,

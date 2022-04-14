@@ -456,10 +456,11 @@ class FlutterListViewElement extends RenderObjectElement {
     return result;
   }
 
-  FlutterListViewRenderData? constructPrevElement(
-      double scrollOffset, double viewportHeight) {
-    double cacheExtent = viewportHeight;
-    double startOffset = scrollOffset - cacheExtent;
+  /// [targetScrollOffset] = [scrollOffset]+[cacheOrig]
+  /// for example if user set cacheExtent=100, cacheOrig should be [-100, 0]
+  FlutterListViewRenderData? constructPrevElement(double targetScrollOffset) {
+    // double cacheExtent = viewportHeight;
+    double startOffset = targetScrollOffset;
     if (startOffset < 0) {
       startOffset = 0;
     }
@@ -551,9 +552,8 @@ class FlutterListViewElement extends RenderObjectElement {
   }
 
   FlutterListViewRenderData? constructNextElement(
-      double scrollOffset, double viewportHeight) {
-    double cacheExtent = viewportHeight;
-    double endOffset = scrollOffset + viewportHeight + cacheExtent;
+      double targetStartScrollOffset, double targetEndScrollOffset) {
+    double endOffset = targetEndScrollOffset;
 
     FlutterListViewRenderData? result;
 
@@ -572,7 +572,7 @@ class FlutterListViewElement extends RenderObjectElement {
       var accuHeight = 0.0;
       var firstIndex = 0;
       for (var i = 0; i < childCount; i++) {
-        double startOffset = scrollOffset - cacheExtent;
+        double startOffset = targetStartScrollOffset;
         if (startOffset < 0) {
           startOffset = 0;
         }
