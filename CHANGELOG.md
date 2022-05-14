@@ -69,6 +69,9 @@
 ## 1.1.15
 * Fixed detach issue
 
+## 1.1.16
+* Fixed touch item is incorrect when items can't fill full screen and firstItemAlign is FirstItemAlign.end
+
 ## TODO
 * Add horizontal scroll support
 * Add creating items when flutter list view created
