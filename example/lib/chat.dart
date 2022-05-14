@@ -71,29 +71,28 @@ class _ChatState extends State<Chat> {
   /// It is mockup to load messages from server
   _loadMessages() async {
     await Future.delayed(const Duration(milliseconds: 100));
-    // var prevTimes = Random().nextInt(4) + 1;
-    // for (var i = 0; i < prevTimes; i++) {
-    //   _insertReceiveMessage("The demo also show how to reverse a list in\r\n" *
-    //       (Random().nextInt(4) + 1));
-    // }
-    // _insertTagMessage("Last readed");
-    // var nextTimes = Random().nextInt(4) + 1;
-    // for (var i = 0; i < nextTimes; i++) {
-    //   _insertReceiveMessage("The demo also show how to reverse a list in\r\n" *
-    //       (Random().nextInt(4) + 1));
-    // }
-    // _insertSendMessage(
-    //     "If message more than two screens and scroll over 80px, the scroll not move if a message coming or you input a message");
-    // _insertSendMessage(
-    //     "It resoved the problem which is when you read a message while a lot of messages coming");
-    // _insertSendMessage("You can't focus the message content what you read");
+    var prevTimes = Random().nextInt(20) + 1;
+    for (var i = 0; i < prevTimes; i++) {
+      _insertReceiveMessage("The demo also show how to reverse a list in\r\n" *
+          (Random().nextInt(4) + 1));
+    }
+    _insertTagMessage("Last readed");
+    var nextTimes = Random().nextInt(20) + 1;
+    for (var i = 0; i < nextTimes; i++) {
+      _insertReceiveMessage("The demo also show how to reverse a list in\r\n" *
+          (Random().nextInt(4) + 1));
+    }
+    _insertSendMessage(
+        "If message more than two screens and scroll over 80px, the scroll not move if a message coming or you input a message");
+    _insertSendMessage(
+        "It resoved the problem which is when you read a message while a lot of messages coming");
+    _insertSendMessage("You can't focus the message content what you read");
     _insertSendMessage(
         "The demo also show how to reverse a list in the controll");
     _insertSendMessage(
         "When reverse the list, the item still show on top of list if the messages didn't fill full screen");
 
-    // initIndex = messages.length - prevTimes - 1;
-    initIndex = messages.length  - 1;
+    initIndex = messages.length - prevTimes - 1;
     print("--------------------$initIndex");
 
     setState(() {});
@@ -212,37 +211,30 @@ class _ChatState extends State<Chat> {
         ),
       );
     } else {
-      return GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-          debugPrint("----------------->${msg.msg}");
-        },
-        child: Align(
-          alignment: msg.type == MessageType.sent
-              ? Alignment.centerRight
-              : Alignment.centerLeft,
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Container(
-              decoration: BoxDecoration(
-                  color:
-                      msg.type == MessageType.sent ? Colors.blue : Colors.green,
-                  borderRadius: msg.type == MessageType.sent
-                      ? const BorderRadius.only(
-                          topLeft: Radius.circular(20),
-                          bottomLeft: Radius.circular(20),
-                          bottomRight: Radius.circular(20))
-                      : const BorderRadius.only(
-                          topRight: Radius.circular(20),
-                          bottomLeft: Radius.circular(20),
-                          bottomRight: Radius.circular(20))),
-              child:  Padding(
-                padding:const EdgeInsets.all(10.0),
-                // child: Text(
-                //   msg.msg,
-                //   style: const TextStyle(fontSize: 14.0, color: Colors.white),
-                // ),
-                 child: Container(color: Colors.white, child:const TextField()),
+      return Align(
+        alignment: msg.type == MessageType.sent
+            ? Alignment.centerRight
+            : Alignment.centerLeft,
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Container(
+            decoration: BoxDecoration(
+                color:
+                    msg.type == MessageType.sent ? Colors.blue : Colors.green,
+                borderRadius: msg.type == MessageType.sent
+                    ? const BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        bottomLeft: Radius.circular(20),
+                        bottomRight: Radius.circular(20))
+                    : const BorderRadius.only(
+                        topRight: Radius.circular(20),
+                        bottomLeft: Radius.circular(20),
+                        bottomRight: Radius.circular(20))),
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Text(
+                msg.msg,
+                style: const TextStyle(fontSize: 14.0, color: Colors.white),
               ),
             ),
           ),
