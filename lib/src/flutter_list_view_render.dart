@@ -192,14 +192,14 @@ class FlutterListViewRender extends RenderSliver
       if (childManager.totalItemHeight <= viewportHeight &&
           constraints.scrollOffset > 0) {
         geometry = SliverGeometry(
-            scrollExtent: childManager.totalItemHeight,
+            scrollExtent: _getScrollExtent(),
             hasVisualOverflow: true,
             scrollOffsetCorrection: -constraints.scrollOffset);
         return;
       } else if (maxRemainArea > 0 &&
           maxRemainArea < (constraints.scrollOffset + compensationScroll)) {
         geometry = SliverGeometry(
-            scrollExtent: childManager.totalItemHeight,
+            scrollExtent: _getScrollExtent(),
             hasVisualOverflow: true,
             scrollOffsetCorrection: maxRemainArea - constraints.scrollOffset);
         return;
@@ -233,14 +233,13 @@ class FlutterListViewRender extends RenderSliver
     }
 
     double paintExtent = constraints.viewportMainAxisExtent;
-    var fullPaintExtent = false;
-    if (fullPaintExtent == false) {
-      paintExtent = calculatePaintOffset(
-        constraints,
-        from: firstRenderChildOffset,
-        to: endRenderChildOffset,
-      );
-    }
+
+    paintExtent = calculatePaintOffset(
+      constraints,
+      from: firstRenderChildOffset,
+      to: endRenderChildOffset,
+    );
+
     final double cacheExtent = calculateCacheOffset(
       constraints,
       from: firstRenderChildOffset,
@@ -266,10 +265,10 @@ class FlutterListViewRender extends RenderSliver
     final double targetEndScrollOffsetForPaint =
         constraints.scrollOffset + constraints.remainingPaintExtent;
     geometry = SliverGeometry(
-        scrollExtent: childManager.totalItemHeight,
-        paintExtent: paintExtent,
-        cacheExtent: cacheExtent,
-        maxPaintExtent: paintExtent,
+        scrollExtent: _getScrollExtent(),
+        paintExtent: _getPaintExtent(paintExtent),
+        cacheExtent: _getCacheExtent(cacheExtent),
+        maxPaintExtent: _getPaintExtent(paintExtent),
         // Conservative to avoid flickering away the clip during scroll.
         hasVisualOverflow:
             endRenderChildOffset > targetEndScrollOffsetForPaint ||
@@ -328,7 +327,7 @@ class FlutterListViewRender extends RenderSliver
       if (constraints.scrollOffset != scrollDy) {
         _isAdjustOperation = true;
         geometry = SliverGeometry(
-            scrollExtent: childManager.totalItemHeight,
+            scrollExtent: _getScrollExtent(),
             hasVisualOverflow: true,
             scrollOffsetCorrection: scrollDy - constraints.scrollOffset);
         return true;
@@ -374,7 +373,7 @@ class FlutterListViewRender extends RenderSliver
               needUpdateNextElementOffset: false);
           _isAdjustOperation = true;
           geometry = SliverGeometry(
-              scrollExtent: childManager.totalItemHeight,
+              scrollExtent: _getScrollExtent(),
               hasVisualOverflow: true,
               scrollOffsetCorrection:
                   correctOffsetDy - constraints.scrollOffset);
@@ -384,6 +383,42 @@ class FlutterListViewRender extends RenderSliver
     }
 
     return false;
+  }
+
+  double _getScrollExtent() {
+    var totalItemHeight = childManager.totalItemHeight;
+    if (childManager.firstItemAlign == FirstItemAlign.end) {
+      if (totalItemHeight < constraints.viewportMainAxisExtent) {
+        return constraints.viewportMainAxisExtent;
+      }
+    }
+
+    return totalItemHeight;
+  }
+
+  double _getPaintExtent(double origPaintExtent) {
+    if (childManager.firstItemAlign == FirstItemAlign.end) {
+      if (origPaintExtent < constraints.viewportMainAxisExtent) {
+        // print(
+        //     "------>scrollOffset:${constraints.scrollOffset}, cacheOrigin:${constraints.cacheOrigin}, remainCache: ${constraints.remainingCacheExtent}, remainPain: ${constraints.remainingPaintExtent}");
+        var remain =
+            constraints.viewportMainAxisExtent - constraints.scrollOffset;
+        if (constraints.remainingPaintExtent < remain) {
+          return constraints.remainingPaintExtent;
+        }
+        return constraints.viewportMainAxisExtent;
+      }
+    }
+    return origPaintExtent;
+  }
+
+  double _getCacheExtent(double origCacehExtent) {
+    if (childManager.firstItemAlign == FirstItemAlign.end) {
+      if (origCacehExtent < constraints.viewportMainAxisExtent) {
+        return constraints.viewportMainAxisExtent;
+      }
+    }
+    return origCacehExtent;
   }
 
   void _determineHeaderStickyElement(BoxConstraints childConstraints) {
@@ -645,18 +680,21 @@ class FlutterListViewRender extends RenderSliver
         }
 
         if (childManager.firstItemAlign == FirstItemAlign.end) {
-          if (geometry!.scrollExtent < constraints.viewportMainAxisExtent) {
+          var actualScrollExtent = childManager.totalItemHeight;
+
+          var geometryScrollExtent = geometry!.scrollExtent;
+          if (actualScrollExtent < constraints.viewportMainAxisExtent) {
             if (growInfo.axisDirection == AxisDirection.down) {
               childOffset = Offset(
                   childOffset.dx,
                   childOffset.dy +
                       constraints.viewportMainAxisExtent -
-                      geometry!.scrollExtent);
+                      actualScrollExtent);
             } else {
               childOffset = Offset(
                   childOffset.dx,
                   childOffset.dy +
-                      geometry!.scrollExtent -
+                      actualScrollExtent -
                       constraints.viewportMainAxisExtent);
             }
           }
@@ -861,6 +899,51 @@ class FlutterListViewRender extends RenderSliver
     }
 
     return false;
+  }
+
+  @override
+  bool hitTestBoxChild(BoxHitTestResult result, RenderBox child,
+      {required double mainAxisPosition, required double crossAxisPosition}) {
+    final bool rightWayUp = _getRightWayUp(constraints);
+    double delta = childMainAxisPosition(child);
+
+    if (childManager.firstItemAlign == FirstItemAlign.end) {
+      if (childManager.totalItemHeight < constraints.viewportMainAxisExtent) {
+        delta = delta +
+            (constraints.viewportMainAxisExtent - childManager.totalItemHeight);
+      }
+    }
+
+    final double crossAxisDelta = childCrossAxisPosition(child);
+    double absolutePosition = mainAxisPosition - delta;
+    final double absoluteCrossAxisPosition = crossAxisPosition - crossAxisDelta;
+    Offset paintOffset, transformedPosition;
+    switch (constraints.axis) {
+      case Axis.horizontal:
+        if (!rightWayUp) {
+          absolutePosition = child.size.width - absolutePosition;
+          delta = geometry!.paintExtent - child.size.width - delta;
+        }
+        paintOffset = Offset(delta, crossAxisDelta);
+        transformedPosition =
+            Offset(absolutePosition, absoluteCrossAxisPosition);
+        break;
+      case Axis.vertical:
+        if (!rightWayUp) {
+          absolutePosition = child.size.height - absolutePosition;
+          delta = geometry!.paintExtent - child.size.height - delta;
+        }
+        paintOffset = Offset(crossAxisDelta, delta);
+        transformedPosition =
+            Offset(absoluteCrossAxisPosition, absolutePosition);
+        break;
+    }
+    return result.addWithOutOfBandPosition(
+      paintOffset: paintOffset,
+      hitTest: (BoxHitTestResult result) {
+        return child.hitTest(result, position: transformedPosition);
+      },
+    );
   }
 
   bool _getRightWayUp(SliverConstraints constraints) {
