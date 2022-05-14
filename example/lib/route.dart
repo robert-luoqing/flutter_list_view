@@ -11,6 +11,7 @@ import 'pull_to_refresh_list.dart';
 import 'separatedList.dart';
 import 'sticky_header.dart';
 import 'sticky_header_refresh.dart';
+import 'test_keep_alive_issue.dart';
 import 'testlist.dart';
 import 'home.dart';
 import 'package:flutter/widgets.dart';
@@ -41,5 +42,6 @@ class SectionViewRoute {
     "/permanentItem": (context) => const PermanentItem(),
     "/separatedListPage": (context) => const SeparatedListPage(),
     "/initJumpKeepPositionPage": (context) => const InitJumpKeepPositionPage(),
+    "/testKeepAliveIssue":(context) => const TestKeepAliveIssue(),
   };
 }

@@ -756,26 +756,6 @@ class FlutterListViewRender extends RenderSliver
   }
 
   @override
-  void visitChildren(RenderObjectVisitor visitor) {
-    bool stickyElementHasVisited = false;
-    var stickyElement = childManager.stickyElement;
-    for (var item in childManager.renderedElements) {
-      visitor(item.element.renderObject!);
-      if (item == stickyElement) {
-        stickyElementHasVisited = true;
-      }
-    }
-
-    if (stickyElement != null && stickyElementHasVisited == false) {
-      visitor(stickyElement.element.renderObject!);
-    }
-
-    for (var item in childManager.cachedElements) {
-      visitor(item.element.renderObject!);
-    }
-  }
-
-  @override
   double childMainAxisPosition(RenderBox child) {
     if (childManager.stickyElement != null &&
         childManager.stickyElement!.element.renderObject == child) {
@@ -793,53 +773,52 @@ class FlutterListViewRender extends RenderSliver
     return childParentData!.layoutOffset;
   }
 
-  @override
-  void attach(PipelineOwner owner) {
-    super.attach(owner);
+  void _loopAllRenderObjects(void Function(RenderObject obj) handler) {
     var renderedElements = childManager.renderedElements;
     var stickyElement = childManager.stickyElement;
-    var stickyIsInRenderedElements = false;
     var permanentElements = childManager.permanentElements;
+    var stickyIsInRenderedElements = false;
     for (var element in renderedElements) {
-      element.element.renderObject!.attach(owner);
+      handler(element.element.renderObject!);
       if (element == stickyElement) {
         stickyIsInRenderedElements = true;
       }
     }
-
     if (stickyIsInRenderedElements == false && stickyElement != null) {
-      stickyElement.element.renderObject!.attach(owner);
+      handler(stickyElement.element.renderObject!);
+    }
+
+    for (var element in childManager.cachedElements) {
+      var eleRenderObj = element.element.renderObject!;
+      handler(eleRenderObj);
     }
 
     for (var key in permanentElements.keys) {
-      permanentElements[key]!.element.renderObject!.attach(owner);
+      handler(permanentElements[key]!.element.renderObject!);
     }
+  }
+
+  @override
+  void visitChildren(RenderObjectVisitor visitor) {
+    _loopAllRenderObjects((obj) {
+      visitor(obj);
+    });
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _loopAllRenderObjects((obj) {
+      obj.attach(owner);
+    });
   }
 
   @override
   void detach() {
     super.detach();
-    var renderedElements = childManager.renderedElements;
-    var stickyElement = childManager.stickyElement;
-    var permanentElements = childManager.permanentElements;
-    var stickyIsInRenderedElements = false;
-    for (var element in renderedElements) {
-      element.element.renderObject!.detach();
-      if (element == stickyElement) {
-        stickyIsInRenderedElements = true;
-      }
-    }
-    if (stickyIsInRenderedElements == false && stickyElement != null) {
-      stickyElement.element.renderObject!.detach();
-    }
-
-    for (var element in childManager.cachedElements) {
-      element.element.renderObject!.detach();
-    }
-
-    for (var key in permanentElements.keys) {
-      permanentElements[key]!.element.renderObject!.detach();
-    }
+    _loopAllRenderObjects((obj) {
+      obj.detach();
+    });
   }
 
   @override
