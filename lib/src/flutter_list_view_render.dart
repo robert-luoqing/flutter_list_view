@@ -398,15 +398,17 @@ class FlutterListViewRender extends RenderSliver
 
   double _getPaintExtent(double origPaintExtent) {
     if (childManager.firstItemAlign == FirstItemAlign.end) {
-      if (origPaintExtent < constraints.viewportMainAxisExtent) {
-        // print(
-        //     "------>scrollOffset:${constraints.scrollOffset}, cacheOrigin:${constraints.cacheOrigin}, remainCache: ${constraints.remainingCacheExtent}, remainPain: ${constraints.remainingPaintExtent}");
+      var totalItemHeight = childManager.totalItemHeight;
+      if (totalItemHeight < constraints.viewportMainAxisExtent) {
         var remain =
             constraints.viewportMainAxisExtent - constraints.scrollOffset;
+        var result = constraints.viewportMainAxisExtent;
+        // print(
+        //     "------>scrollOffset:${constraints.scrollOffset},remainCache: ${constraints.remainingCacheExtent}, remainPain: ${constraints.remainingPaintExtent}, result: $result");
         if (constraints.remainingPaintExtent < remain) {
-          return constraints.remainingPaintExtent;
+          result = constraints.remainingPaintExtent;
         }
-        return constraints.viewportMainAxisExtent;
+        return result;
       }
     }
     return origPaintExtent;
@@ -414,8 +416,11 @@ class FlutterListViewRender extends RenderSliver
 
   double _getCacheExtent(double origCacehExtent) {
     if (childManager.firstItemAlign == FirstItemAlign.end) {
-      if (origCacehExtent < constraints.viewportMainAxisExtent) {
-        return constraints.viewportMainAxisExtent;
+      var totalItemHeight = childManager.totalItemHeight;
+      if (totalItemHeight < constraints.viewportMainAxisExtent) {
+        if (origCacehExtent < constraints.viewportMainAxisExtent) {
+          return constraints.viewportMainAxisExtent;
+        }
       }
     }
     return origCacehExtent;

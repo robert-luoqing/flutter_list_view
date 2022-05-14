@@ -236,12 +236,13 @@ class _ChatState extends State<Chat> {
                           topRight: Radius.circular(20),
                           bottomLeft: Radius.circular(20),
                           bottomRight: Radius.circular(20))),
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Text(
-                  msg.msg,
-                  style: const TextStyle(fontSize: 14.0, color: Colors.white),
-                ),
+              child:  Padding(
+                padding:const EdgeInsets.all(10.0),
+                // child: Text(
+                //   msg.msg,
+                //   style: const TextStyle(fontSize: 14.0, color: Colors.white),
+                // ),
+                 child: Container(color: Colors.white, child:const TextField()),
               ),
             ),
           ),
