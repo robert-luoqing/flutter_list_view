@@ -278,7 +278,7 @@ class FlutterListViewRender extends RenderSliver
             (compensationScroll < 0.01 && compensationScroll >= -0.01)
                 ? null
                 : compensationScroll);
-
+    // print("------>scrollExtent:${_getScrollExtent()}, paintExtent:${_getPaintExtent(paintExtent)}， cacheExtent:${_getCacheExtent(cacheExtent)}");
     if (_isAdjustOperation) {
       childManager.notifyPositionChanged();
     }
@@ -400,17 +400,15 @@ class FlutterListViewRender extends RenderSliver
     if (childManager.firstItemAlign == FirstItemAlign.end) {
       var totalItemHeight = childManager.totalItemHeight;
       if (totalItemHeight < constraints.viewportMainAxisExtent) {
-        var remain =
-            constraints.viewportMainAxisExtent - constraints.scrollOffset;
-        var result = constraints.viewportMainAxisExtent;
-        // print(
-        //     "------>scrollOffset:${constraints.scrollOffset},remainCache: ${constraints.remainingCacheExtent}, remainPain: ${constraints.remainingPaintExtent}, result: $result");
-        if (constraints.remainingPaintExtent < remain) {
-          result = constraints.remainingPaintExtent;
-        }
-        return result;
+        var paintExtent = calculatePaintOffset(
+          constraints,
+          from: 0,
+          to: constraints.viewportMainAxisExtent,
+        );
+        return paintExtent;
       }
     }
+
     return origPaintExtent;
   }
 
@@ -418,9 +416,13 @@ class FlutterListViewRender extends RenderSliver
     if (childManager.firstItemAlign == FirstItemAlign.end) {
       var totalItemHeight = childManager.totalItemHeight;
       if (totalItemHeight < constraints.viewportMainAxisExtent) {
-        if (origCacehExtent < constraints.viewportMainAxisExtent) {
-          return constraints.viewportMainAxisExtent;
-        }
+        final double cacheExtent = calculateCacheOffset(
+          constraints,
+          from: 0,
+          to: constraints.viewportMainAxisExtent,
+        );
+
+        return cacheExtent;
       }
     }
     return origCacehExtent;
