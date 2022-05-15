@@ -72,6 +72,9 @@
 ## 1.1.17
 * Fixed touch item is incorrect when items can't fill full screen and firstItemAlign is FirstItemAlign.end
 
+## 1.1.18
+* Rewrite keep position logic.
+
 ## TODO
 * Add horizontal scroll support
 * Add creating items when flutter list view created

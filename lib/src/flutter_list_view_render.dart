@@ -16,6 +16,7 @@ class FlutterListViewRender extends RenderSliver
   /// We will use the data to keep position if some items
   /// insert before the item
   FlutterListViewRenderData? firstPainItemInViewport;
+  double? firstPainItemOffsetY;
   Offset? firstPainItemOffset;
   double? currentScrollOffset;
   double? currentViewportHeight;
@@ -65,6 +66,38 @@ class FlutterListViewRender extends RenderSliver
     }
 
     return null;
+  }
+
+  List<double> _calcPaintExtentAndCacehExtent() {
+    double firstRenderChildOffset = 0;
+    double endRenderChildOffset = 0;
+    var elements = childManager.renderedElements;
+    if (elements.isNotEmpty) {
+      firstRenderChildOffset = elements.first.offset;
+      var lastElement = elements.last;
+      endRenderChildOffset = lastElement.offset + lastElement.height;
+    }
+
+    double paintExtent = constraints.viewportMainAxisExtent;
+
+    paintExtent = calculatePaintOffset(
+      constraints,
+      from: firstRenderChildOffset,
+      to: endRenderChildOffset,
+    );
+
+    final double cacheExtent = calculateCacheOffset(
+      constraints,
+      from: firstRenderChildOffset,
+      to: endRenderChildOffset,
+    );
+
+    return [
+      paintExtent,
+      cacheExtent,
+      firstRenderChildOffset,
+      endRenderChildOffset
+    ];
   }
 
   /// The field will indicate next layout will not remove out of scope elements
@@ -223,28 +256,11 @@ class FlutterListViewRender extends RenderSliver
     //   childManager.cachedElements.clear();
     // }
 
-    double firstRenderChildOffset = 0;
-    double endRenderChildOffset = 0;
-    var elements = childManager.renderedElements;
-    if (elements.isNotEmpty) {
-      firstRenderChildOffset = elements.first.offset;
-      var lastElement = elements.last;
-      endRenderChildOffset = lastElement.offset + lastElement.height;
-    }
-
-    double paintExtent = constraints.viewportMainAxisExtent;
-
-    paintExtent = calculatePaintOffset(
-      constraints,
-      from: firstRenderChildOffset,
-      to: endRenderChildOffset,
-    );
-
-    final double cacheExtent = calculateCacheOffset(
-      constraints,
-      from: firstRenderChildOffset,
-      to: endRenderChildOffset,
-    );
+    var extentResults = _calcPaintExtentAndCacehExtent();
+    final double paintExtent = extentResults[0];
+    final double cacheExtent = extentResults[1];
+    final double firstRenderChildOffset = extentResults[2];
+    final double endRenderChildOffset = extentResults[3];
 
     if (_jumpToElement != null) {
       var elementOffset = _jumpToElement!.offset;
@@ -356,28 +372,40 @@ class FlutterListViewRender extends RenderSliver
       if (matchedIndex != null) {
         // Calculate and correct the value
         var itemDy = childManager.getScrollOffsetByIndex(matchedIndex);
-        var correctOffsetDy = itemDy - firstPainItemOffset!.dy;
+        if (itemDy != firstPainItemOffsetY) {
+          // var correctOffsetDy = itemDy - firstPainItemOffset!.dy;
+          var correctOffsetDy =
+              constraints.scrollOffset + (itemDy - (firstPainItemOffsetY ?? 0));
 
-        if (constraints.scrollOffset != correctOffsetDy) {
-          late FlutterListViewRenderData chatElem;
-          invokeLayoutCallback((constraints) {
-            chatElem = childManager.constructOneIndexElement(
-                matchedIndex, itemDy, true);
-          });
-          RenderBox child = chatElem.element.renderObject! as RenderBox;
-          child.layout(childConstraints, parentUsesSize: true);
-          var itemHeight = child.size.height;
-          childManager.updateElementPosition(
-              spEle: chatElem,
-              newHeight: itemHeight,
-              needUpdateNextElementOffset: false);
-          _isAdjustOperation = true;
-          geometry = SliverGeometry(
-              scrollExtent: _getScrollExtent(),
-              hasVisualOverflow: true,
-              scrollOffsetCorrection:
-                  correctOffsetDy - constraints.scrollOffset);
-          return true;
+          if (constraints.scrollOffset != correctOffsetDy) {
+            late FlutterListViewRenderData chatElem;
+            invokeLayoutCallback((constraints) {
+              chatElem = childManager.constructOneIndexElement(
+                  matchedIndex, itemDy, true);
+            });
+            RenderBox child = chatElem.element.renderObject! as RenderBox;
+            child.layout(childConstraints, parentUsesSize: true);
+            var itemHeight = child.size.height;
+            childManager.updateElementPosition(
+                spEle: chatElem,
+                newHeight: itemHeight,
+                needUpdateNextElementOffset: false);
+            _isAdjustOperation = true;
+            
+            var extentResults = _calcPaintExtentAndCacehExtent();
+            final double paintExtent = extentResults[0];
+            final double cacheExtent = extentResults[1];
+
+            geometry = SliverGeometry(
+                scrollExtent: _getScrollExtent(),
+                paintExtent: _getPaintExtent(paintExtent),
+                cacheExtent: _getCacheExtent(cacheExtent),
+                maxPaintExtent: _getPaintExtent(paintExtent),
+                hasVisualOverflow: false,
+                scrollOffsetCorrection:
+                    correctOffsetDy - constraints.scrollOffset);
+            return true;
+          }
         }
       }
     }
@@ -684,6 +712,7 @@ class FlutterListViewRender extends RenderSliver
         if (firstPainItemInViewport == null) {
           firstPainItemInViewport = renderElement;
           firstPainItemOffset = normalChildOffset;
+          firstPainItemOffsetY = renderElement.offset;
         }
 
         if (childManager.firstItemAlign == FirstItemAlign.end) {
