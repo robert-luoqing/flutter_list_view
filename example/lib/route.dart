@@ -1,5 +1,6 @@
 import 'chat.dart';
 import 'chat2.dart';
+import 'chat3.dart';
 import 'flutter_list_view_performance.dart';
 import 'init_jump.dart';
 import 'init_jump_after_loaddata.dart';
@@ -33,6 +34,7 @@ class SectionViewRoute {
     "/jumpToIndexPage": (context) => const JumpToIndexPage(),
     "/chat": (context) => const Chat(),
     "/chat2": (context) => const Chat2(),
+    "/chat3": (context) => const Chat3(),
     "/initJumpPage": (context) => const InitJumpPage(),
     "/initJumpAfterLoadDataPage": (context) =>
         const InitJumpAfterLoadDataPage(),
