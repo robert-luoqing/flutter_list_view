@@ -825,7 +825,7 @@ class FlutterListViewElement extends RenderObjectElement {
       /// It will create new one.
       if (!isPermanentItem(itemKey) && cachedElements.isNotEmpty) {
         /// Priority reuse same key elements
-        var matchedIndex = 0;
+        var matchedIndex = -1;
         for (var i = 0; i < cachedElements.length; i++) {
           if (cachedElements[i].itemKey == itemKey) {
             matchedIndex = i;
@@ -833,8 +833,18 @@ class FlutterListViewElement extends RenderObjectElement {
           }
         }
 
-        newElement = cachedElements[matchedIndex].element;
-        cachedElements.removeAt(matchedIndex);
+        if (matchedIndex == -1 && cachedElements.length > 20) {
+          if (firstItemAlign == FirstItemAlign.end) {
+            matchedIndex = cachedElements.length - 1;
+          } else {
+            matchedIndex = 0;
+          }
+        }
+
+        if (matchedIndex != -1) {
+          newElement = cachedElements[matchedIndex].element;
+          cachedElements.removeAt(matchedIndex);
+        }
       }
     }
 
