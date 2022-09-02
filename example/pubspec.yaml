@@ -50,6 +50,7 @@ dev_dependencies:
   pull_to_refresh: ^2.0.0
   flutter_html: ^2.2.1
   shimmer: ^2.0.0
+  styled_text: ^5.1.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

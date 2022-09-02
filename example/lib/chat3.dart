@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_list_view/flutter_list_view.dart';
+import 'package:styled_text/styled_text.dart';
 
 class Chat3 extends StatefulWidget {
   const Chat3({Key? key}) : super(key: key);
@@ -21,6 +22,32 @@ class _Chat3State extends State<Chat3> {
       "msg": time.toString()
     };
     messageList.insert(0, newMsg);
+    setState(() {});
+  }
+
+  _generateMsgs() {
+    var time = DateTime.now();
+    for (int i = 0; i < 10; i++) {
+      time = time.add(const Duration(milliseconds: 1));
+      var newMsg = {
+        "id": time.microsecondsSinceEpoch.toString(),
+        "time": time.toString(),
+        "msg": time.toString()
+      };
+      messageList.add(newMsg);
+    }
+  }
+
+  @override
+  void initState() {
+    _generateMsgs();
+    super.initState();
+  }
+
+  Future<void> doLoadAction() async {
+    await Future.delayed(const Duration(seconds: 1));
+    _generateMsgs();
+    easyRefreshController.finishLoad(success: true, noMore: false);
     setState(() {});
   }
 
@@ -59,9 +86,10 @@ class _Chat3State extends State<Chat3> {
             keepPosition: false,
             initOffsetBasedOnBottom: true,
             firstItemAlign: FirstItemAlign.end,
+            onIsPermanent: (key) => true,
           ),
         ),
-        // onLoad: state.doLoadAction,
+        onLoad: doLoadAction,
       ),
     );
   }
@@ -70,10 +98,9 @@ class _Chat3State extends State<Chat3> {
     final message = messageList[index];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      // crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Center(
-          child: Text(message["time"].toString()),
+          child: StyledText.selectable(text: message["time"].toString()),
         ),
         Container(
           padding: const EdgeInsets.all(24),
@@ -81,7 +108,7 @@ class _Chat3State extends State<Chat3> {
           decoration: const BoxDecoration(
               color: Colors.yellow,
               borderRadius: BorderRadius.all(Radius.circular(6.66))),
-          child: Text(message["msg"]),
+          child: StyledText.selectable(text: message["msg"]),
         )
       ],
     );
