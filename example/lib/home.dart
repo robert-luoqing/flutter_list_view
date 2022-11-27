@@ -101,6 +101,14 @@ class _HomePageState extends State<HomePage> {
                   Navigator.of(context).pushNamed("/testKeepAliveIssue");
                 },
                 child: const Text("Test Keep Alive Issue")),
+
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed("/testCase2");
+                },
+                child: const Text("test Case2")),
+
+                
           ],
         ),
       ),

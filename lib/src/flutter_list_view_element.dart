@@ -218,7 +218,7 @@ class FlutterListViewElement extends RenderObjectElement {
 
   /// [notifyPositionChanged] is used to send ScrollNotification
   void notifyPositionChanged() {
-    WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       try {
         var position = parentScrollableState?.position;
 
@@ -237,7 +237,7 @@ class FlutterListViewElement extends RenderObjectElement {
   }
 
   void notifyStickyChanged(int? index) {
-    WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       if (widget.controller != null) {
         if (widget.controller!.stickyIndex.value != index) {
           widget.controller!.stickyIndex.value = index;
@@ -249,7 +249,7 @@ class FlutterListViewElement extends RenderObjectElement {
   void notifyPaintItemPositionsCallback(
       double widgetHeight, List<FlutterListViewItemPosition> paintElements) {
     try {
-      WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
         var onPaintItemPositionsCallback =
             widget.controller?.onPaintItemPositionsCallback;
         if (onPaintItemPositionsCallback != null) {
@@ -327,6 +327,15 @@ class FlutterListViewElement extends RenderObjectElement {
     if (widget.delegate is FlutterListViewDelegate) {
       var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
       return flutterListDelegate.onItemSticky != null;
+    }
+
+    return false;
+  }
+
+  bool get disableCacheItems {
+    if (widget.delegate is FlutterListViewDelegate) {
+      var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
+      return flutterListDelegate.disableCacheItems;
     }
 
     return false;

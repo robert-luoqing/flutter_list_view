@@ -38,7 +38,8 @@ class FlutterListViewDelegate extends SliverChildDelegate {
       this.initOffset = 0.0,
       this.initOffsetBasedOnBottom = false,
       this.onIsPermanent,
-      this.isSupressElementGenerate = false});
+      this.isSupressElementGenerate = false,
+      this.disableCacheItems = false});
 
   /// When childCount from 0 to non-zore, the [initIndex] will effect,
   /// When initIndex changed, if child count is not 0, it also effect
@@ -168,6 +169,9 @@ class FlutterListViewDelegate extends SliverChildDelegate {
   /// Notice, it will be trigger when syncCreatedItemKeyOrIndexs object mutated
   /// It will rememeber the keyOrIndex once created
   // final List<String>? syncCreatedItemIndexs;
+
+  /// Disable cache deactive item when item is invisble
+  final bool disableCacheItems;
 
   Widget _createErrorWidget(Object exception, StackTrace stackTrace) {
     final FlutterErrorDetails details = FlutterErrorDetails(

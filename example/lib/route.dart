@@ -12,6 +12,7 @@ import 'pull_to_refresh_list.dart';
 import 'separatedList.dart';
 import 'sticky_header.dart';
 import 'sticky_header_refresh.dart';
+import 'test_case2.dart';
 import 'test_keep_alive_issue.dart';
 import 'testlist.dart';
 import 'home.dart';
@@ -45,5 +46,6 @@ class SectionViewRoute {
     "/separatedListPage": (context) => const SeparatedListPage(),
     "/initJumpKeepPositionPage": (context) => const InitJumpKeepPositionPage(),
     "/testKeepAliveIssue":(context) => const TestKeepAliveIssue(),
+    "/testCase2": (context) => const TestCase2(),
   };
 }

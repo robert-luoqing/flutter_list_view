@@ -247,14 +247,17 @@ class FlutterListViewRender extends RenderSliver
         _determineHeaderStickyElement(childConstraints);
       }
     }
-    // if (childManager.cachedElements.isNotEmpty) {
-    //   invokeLayoutCallback((constraints) {
-    //     for (var item in childManager.cachedElements) {
-    //       childManager.removeChildElement(item.element);
-    //     }
-    //   });
-    //   childManager.cachedElements.clear();
-    // }
+
+    if (childManager.disableCacheItems) {
+      if (childManager.cachedElements.isNotEmpty) {
+        invokeLayoutCallback((constraints) {
+          for (var item in childManager.cachedElements) {
+            childManager.removeChildElement(item.element);
+          }
+        });
+        childManager.cachedElements.clear();
+      }
+    }
 
     var extentResults = _calcPaintExtentAndCacehExtent();
     final double paintExtent = extentResults[0];
@@ -391,7 +394,7 @@ class FlutterListViewRender extends RenderSliver
                 newHeight: itemHeight,
                 needUpdateNextElementOffset: false);
             _isAdjustOperation = true;
-            
+
             var extentResults = _calcPaintExtentAndCacehExtent();
             final double paintExtent = extentResults[0];
             final double cacheExtent = extentResults[1];
