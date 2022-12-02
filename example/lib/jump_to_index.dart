@@ -72,7 +72,7 @@ class _JumpToIndexPageState extends State<JumpToIndexPage> {
                           int.parse(indexTextController.text),
                           offset: double.parse(offsetTextController.text),
                           offsetBasedOnBottom: alignToBottom,
-                          duration: const Duration(milliseconds: 3000),
+                          duration: const Duration(milliseconds: 300),
                           curve: Curves.ease);
                       await Future.delayed(const Duration(seconds: 1));
                       // indexTextController.text =
