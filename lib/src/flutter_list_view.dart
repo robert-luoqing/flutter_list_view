@@ -42,6 +42,7 @@ class FlutterListView extends CustomScrollView {
             cacheExtent: cacheExtent,
             semanticChildCount: semanticChildCount,
             dragStartBehavior: dragStartBehavior,
+            keyboardDismissBehavior: keyboardDismissBehavior,
             restorationId: restorationId,
             clipBehavior: clipBehavior);
 
