@@ -75,6 +75,9 @@
 ## 1.1.18
 * Rewrite keep position logic.
 
+## 1.1.22
+* Fix the error when item is Dismissible widget
+
 ## TODO
 * Add horizontal scroll support
 * Add creating items when flutter list view created

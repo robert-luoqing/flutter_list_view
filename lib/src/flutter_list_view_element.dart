@@ -190,7 +190,9 @@ class FlutterListViewElement extends RenderObjectElement {
       var position = parentScrollableState?.position;
       await position?.animateTo(scrollOffset, duration: duration, curve: curve);
     } catch (e, s) {
-      print("error in animateToIndex in flutter list view element, $e, $s");
+      if (kDebugMode) {
+        print("error in animateToIndex in flutter list view element, $e, $s");
+      }
     } finally {
       _isInScrolling = false;
       supressElementGenerate = false;
@@ -230,8 +232,10 @@ class FlutterListViewElement extends RenderObjectElement {
           position.didEndScroll();
         }
       } catch (e, s) {
-        print(
+        if (kDebugMode) {
+          print(
             "error in notifyPositionChanged in flutter list view element, $e, $s");
+        }
       }
     });
   }
@@ -257,7 +261,9 @@ class FlutterListViewElement extends RenderObjectElement {
         }
       });
     } catch (e, s) {
-      print("notifyPaintItemPositionsCallback error $e, $s");
+      if (kDebugMode) {
+        print("notifyPaintItemPositionsCallback error $e, $s");
+      }
     }
   }
 
@@ -630,20 +636,20 @@ class FlutterListViewElement extends RenderObjectElement {
     return newChild;
   }
 
-  static double _extrapolateMaxScrollOffset(
-    int firstIndex,
-    int lastIndex,
-    double leadingScrollOffset,
-    double trailingScrollOffset,
-    int childCount,
-  ) {
-    if (lastIndex == childCount - 1) return trailingScrollOffset;
-    final int reifiedCount = lastIndex - firstIndex + 1;
-    final double averageExtent =
-        (trailingScrollOffset - leadingScrollOffset) / reifiedCount;
-    final int remainingCount = childCount - lastIndex - 1;
-    return trailingScrollOffset + averageExtent * remainingCount;
-  }
+  // static double _extrapolateMaxScrollOffset(
+  //   int firstIndex,
+  //   int lastIndex,
+  //   double leadingScrollOffset,
+  //   double trailingScrollOffset,
+  //   int childCount,
+  // ) {
+  //   if (lastIndex == childCount - 1) return trailingScrollOffset;
+  //   final int reifiedCount = lastIndex - firstIndex + 1;
+  //   final double averageExtent =
+  //       (trailingScrollOffset - leadingScrollOffset) / reifiedCount;
+  //   final int remainingCount = childCount - lastIndex - 1;
+  //   return trailingScrollOffset + averageExtent * remainingCount;
+  // }
 
   /// The best available estimate of [childCount], or null if no estimate is available.
   ///

@@ -260,7 +260,7 @@ class FlutterListViewRender extends RenderSliver
     var extentResults = _calcPaintExtentAndCacehExtent();
     final double paintExtent = extentResults[0];
     final double cacheExtent = extentResults[1];
-    final double firstRenderChildOffset = extentResults[2];
+    // final double firstRenderChildOffset = extentResults[2];
     final double endRenderChildOffset = extentResults[3];
 
     if (_jumpToElement != null) {
@@ -691,8 +691,6 @@ class FlutterListViewRender extends RenderSliver
     if (child is RenderBox) {
       if (child.hasSize) {
         context.paintChild(child, offset);
-      } else {
-        print("------------------------no size");
       }
     } else {
       context.paintChild(child, offset);
@@ -929,11 +927,6 @@ class FlutterListViewRender extends RenderSliver
         if (element == stickyElement) {
           stickyIsInRenderedElements = true;
         }
-      } else {
-        print("-----------------loop missed:" +
-            element.itemKey +
-            ",index: " +
-            element.index.toString());
       }
     }
     if (stickyIsInRenderedElements == false && stickyElement != null) {
@@ -993,12 +986,7 @@ class FlutterListViewRender extends RenderSliver
     // } else {
     if (child.hasSize && child.parent == this) {
       applyPaintTransformForBoxChild(child, transform);
-    } else {
-      // transform.setZero();
-      print("--------------------------apply paint error");
-    }
-
-    // }
+    } 
   }
 
   @override
