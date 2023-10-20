@@ -122,12 +122,12 @@ class FlutterListView extends CustomScrollView {
               widget = itemBuilder(context, itemIndex);
             } else {
               widget = separatorBuilder(context, itemIndex);
-              assert(() {
-                if (widget == null) {
-                  throw FlutterError('separatorBuilder cannot return null.');
-                }
-                return true;
-              }());
+              // assert(() {
+              //   if (widget == null) {
+              //     throw FlutterError('separatorBuilder cannot return null.');
+              //   }
+              //   return true;
+              // }());
             }
             return widget;
           },

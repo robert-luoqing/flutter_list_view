@@ -190,7 +190,9 @@ class FlutterListViewElement extends RenderObjectElement {
       var position = parentScrollableState?.position;
       await position?.animateTo(scrollOffset, duration: duration, curve: curve);
     } catch (e, s) {
-      print("error in animateToIndex in flutter list view element, $e, $s");
+      if (kDebugMode) {
+        print("error in animateToIndex in flutter list view element, $e, $s");
+      }
     } finally {
       _isInScrolling = false;
       supressElementGenerate = false;
@@ -230,8 +232,10 @@ class FlutterListViewElement extends RenderObjectElement {
           position.didEndScroll();
         }
       } catch (e, s) {
-        print(
+        if (kDebugMode) {
+          print(
             "error in notifyPositionChanged in flutter list view element, $e, $s");
+        }
       }
     });
   }
@@ -257,7 +261,9 @@ class FlutterListViewElement extends RenderObjectElement {
         }
       });
     } catch (e, s) {
-      print("notifyPaintItemPositionsCallback error $e, $s");
+      if (kDebugMode) {
+        print("notifyPaintItemPositionsCallback error $e, $s");
+      }
     }
   }
 
@@ -501,9 +507,11 @@ class FlutterListViewElement extends RenderObjectElement {
       for (var i = 1; i < _renderedElements.length; i++) {
         var item = _renderedElements[i];
         item.offset += diff;
-        final itemParentData = item.element.renderObject!.parentData!
-            as SliverMultiBoxAdaptorParentData;
-        itemParentData.layoutOffset = item.offset;
+        if (item.element.renderObject != null) {
+          final itemParentData = item.element.renderObject!.parentData!
+              as SliverMultiBoxAdaptorParentData;
+          itemParentData.layoutOffset = item.offset;
+        }
       }
     }
 
@@ -521,9 +529,11 @@ class FlutterListViewElement extends RenderObjectElement {
     _totalItemHeight += diff;
     spEle.offset = offset;
     spEle.height = height;
-    final parentData = spEle.element.renderObject!.parentData!
-        as SliverMultiBoxAdaptorParentData;
-    parentData.layoutOffset = spEle.offset;
+    if (spEle.element.renderObject!.parentData != null) {
+      final parentData = spEle.element.renderObject!.parentData!
+          as SliverMultiBoxAdaptorParentData;
+      parentData.layoutOffset = spEle.offset;
+    }
     setItemHeight(getKeyByItemIndex(spEle.index), height);
     return diff;
   }
@@ -531,7 +541,7 @@ class FlutterListViewElement extends RenderObjectElement {
   FlutterListViewRenderData _createOrReuseElement(int index) {
     Element? newElement = fetchItemFromCacheOrPermanent(index);
     if (newElement != null) {
-      updateChild(newElement, _build(index), index);
+      newElement = updateChild(newElement, _build(index), index);
     } else {
       newElement = createChild2(index);
     }
@@ -626,20 +636,20 @@ class FlutterListViewElement extends RenderObjectElement {
     return newChild;
   }
 
-  static double _extrapolateMaxScrollOffset(
-    int firstIndex,
-    int lastIndex,
-    double leadingScrollOffset,
-    double trailingScrollOffset,
-    int childCount,
-  ) {
-    if (lastIndex == childCount - 1) return trailingScrollOffset;
-    final int reifiedCount = lastIndex - firstIndex + 1;
-    final double averageExtent =
-        (trailingScrollOffset - leadingScrollOffset) / reifiedCount;
-    final int remainingCount = childCount - lastIndex - 1;
-    return trailingScrollOffset + averageExtent * remainingCount;
-  }
+  // static double _extrapolateMaxScrollOffset(
+  //   int firstIndex,
+  //   int lastIndex,
+  //   double leadingScrollOffset,
+  //   double trailingScrollOffset,
+  //   int childCount,
+  // ) {
+  //   if (lastIndex == childCount - 1) return trailingScrollOffset;
+  //   final int reifiedCount = lastIndex - firstIndex + 1;
+  //   final double averageExtent =
+  //       (trailingScrollOffset - leadingScrollOffset) / reifiedCount;
+  //   final int remainingCount = childCount - lastIndex - 1;
+  //   return trailingScrollOffset + averageExtent * remainingCount;
+  // }
 
   /// The best available estimate of [childCount], or null if no estimate is available.
   ///
@@ -701,9 +711,11 @@ class FlutterListViewElement extends RenderObjectElement {
     // the visitor:
     bool stickyElementHasVisited = false;
     for (var item in _renderedElements) {
-      visitor(item.element);
-      if (item == stickyElement) {
-        stickyElementHasVisited = true;
+      if (item.element.renderObject?.parent != null) {
+        visitor(item.element);
+        if (item == stickyElement) {
+          stickyElementHasVisited = true;
+        }
       }
     }
 
@@ -827,7 +839,10 @@ class FlutterListViewElement extends RenderObjectElement {
     Element? newElement;
     var itemKey = getKeyByItemIndex(index);
     if (permanentElements.containsKey(itemKey)) {
-      newElement = permanentElements[itemKey]!.element;
+      if (permanentElements[itemKey]!.element.renderObject != null) {
+        newElement = permanentElements[itemKey]!.element;
+      }
+
       permanentElements.remove(itemKey);
     } else {
       /// PermanentItem will not reused exist cached item.
@@ -835,11 +850,25 @@ class FlutterListViewElement extends RenderObjectElement {
       if (!isPermanentItem(itemKey) && cachedElements.isNotEmpty) {
         /// Priority reuse same key elements
         var matchedIndex = -1;
+        List<int> needRemovedIndex = [];
+
         for (var i = 0; i < cachedElements.length; i++) {
-          if (cachedElements[i].itemKey == itemKey) {
+          var item = cachedElements[i];
+          if (item.element.renderObject == null ||
+              item.element.renderObject!.parent != renderObject) {
+            needRemovedIndex.add(i);
+            if (item.itemKey == itemKey) {
+              break;
+            }
+          }
+          if (item.itemKey == itemKey) {
             matchedIndex = i;
             break;
           }
+        }
+
+        for (var index in needRemovedIndex.reversed) {
+          cachedElements.removeAt(index);
         }
 
         if (matchedIndex == -1 && cachedElements.length > 20) {
@@ -857,6 +886,11 @@ class FlutterListViewElement extends RenderObjectElement {
       }
     }
 
+    if (newElement != null &&
+        (newElement.renderObject == null ||
+            newElement.renderObject!.parent != renderObject)) {
+      return null;
+    }
     return newElement;
   }
 

@@ -1,3 +1,5 @@
+import 'package:flutter_list_view_example/dismissable_item_test.dart';
+
 import 'chat.dart';
 import 'chat2.dart';
 import 'chat3.dart';
@@ -22,8 +24,8 @@ class SectionViewRoute {
   static const String initialRoute = "/";
   static final Map<String, WidgetBuilder> routes = {
     "/": (context) => Stack(
-          children: const [
-            HomePage(
+          children: [
+            const HomePage(
               title: "Home",
             ),
           ],
@@ -45,7 +47,8 @@ class SectionViewRoute {
     "/permanentItem": (context) => const PermanentItem(),
     "/separatedListPage": (context) => const SeparatedListPage(),
     "/initJumpKeepPositionPage": (context) => const InitJumpKeepPositionPage(),
-    "/testKeepAliveIssue":(context) => const TestKeepAliveIssue(),
+    "/testKeepAliveIssue": (context) => const TestKeepAliveIssue(),
     "/testCase2": (context) => const TestCase2(),
+    "/testDismissableItem": (context) => const DismissibleItemTest(),
   };
 }

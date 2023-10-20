@@ -1,5 +1,5 @@
+import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_list_view/flutter_list_view.dart';
 import 'package:styled_text/styled_text.dart';
 
@@ -47,7 +47,7 @@ class _Chat3State extends State<Chat3> {
   Future<void> doLoadAction() async {
     await Future.delayed(const Duration(seconds: 1));
     _generateMsgs();
-    easyRefreshController.finishLoad(success: true, noMore: false);
+    easyRefreshController.finishLoad(IndicatorResult.success);
     setState(() {});
   }
 
@@ -74,7 +74,7 @@ class _Chat3State extends State<Chat3> {
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 24),
       child: EasyRefresh(
         controller: easyRefreshController,
-        footer: ClassicalFooter(),
+        // footer: ClassicalFooter(),
         child: FlutterListView(
           reverse: true,
           physics: const BouncingScrollPhysics(),
