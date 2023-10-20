@@ -33,14 +33,32 @@ class _DismissibleItemTestState extends State<DismissibleItemTest> {
             ),
           ),
         );
-
-        // return ListTile(
-        //   title: Text(
-        //     'Item ${items[index]}',
-        //   ),
-        // );
       },
       childCount: items.length,
     )));
+
+    // return Scaffold(
+    //     body: ListView.builder(
+    //   itemCount: items.length,
+    //   padding: const EdgeInsets.symmetric(vertical: 16),
+    //   itemBuilder: (BuildContext context, int index) {
+    //     return Dismissible(
+    //       background: Container(
+    //         color: Colors.green,
+    //       ),
+    //       key: ValueKey<int>(items[index]),
+    //       onDismissed: (DismissDirection direction) {
+    //         setState(() {
+    //           items.removeAt(index);
+    //         });
+    //       },
+    //       child: ListTile(
+    //         title: Text(
+    //           'Item ${items[index]}',
+    //         ),
+    //       ),
+    //     );
+    //   },
+    // ));
   }
 }

@@ -535,7 +535,7 @@ class FlutterListViewElement extends RenderObjectElement {
   FlutterListViewRenderData _createOrReuseElement(int index) {
     Element? newElement = fetchItemFromCacheOrPermanent(index);
     if (newElement != null) {
-      updateChild(newElement, _build(index), index);
+      newElement = updateChild(newElement, _build(index), index);
     } else {
       newElement = createChild2(index);
     }
@@ -705,9 +705,11 @@ class FlutterListViewElement extends RenderObjectElement {
     // the visitor:
     bool stickyElementHasVisited = false;
     for (var item in _renderedElements) {
-      visitor(item.element);
-      if (item == stickyElement) {
-        stickyElementHasVisited = true;
+      if (item.element.renderObject?.parent != null) {
+        visitor(item.element);
+        if (item == stickyElement) {
+          stickyElementHasVisited = true;
+        }
       }
     }
 

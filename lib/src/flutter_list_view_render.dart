@@ -670,11 +670,16 @@ class FlutterListViewRender extends RenderSliver
       child.layout(constraints, parentUsesSize: parentUsesSize);
       return child.size;
     } else {
-      if (spElement != null && child?.parent == this) {
-        invokeLayoutCallback((constraints) {
-          childManager.removeChildElement(spElement.element);
-        });
+      if (child != null && child.parent == null) {
+        // adoptChild(child);
+        // child.layout(constraints, parentUsesSize: parentUsesSize);
+        // return const Size(0, 0);
       }
+      // if (spElement != null && child?.parent == this) {
+      //   invokeLayoutCallback((constraints) {
+      //     childManager.removeChildElement(spElement.element);
+      //   });
+      // }
     }
     return const Size(0, 0);
   }
@@ -918,28 +923,36 @@ class FlutterListViewRender extends RenderSliver
     var permanentElements = childManager.permanentElements;
     var stickyIsInRenderedElements = false;
     for (var element in renderedElements) {
-      if (element.element.renderObject != null) {
+      if (element.element.renderObject != null &&
+          element.element.renderObject?.parent == this) {
         handler(element.element.renderObject!);
         if (element == stickyElement) {
           stickyIsInRenderedElements = true;
         }
+      } else {
+        print("-----------------loop missed:" +
+            element.itemKey +
+            ",index: " +
+            element.index.toString());
       }
     }
     if (stickyIsInRenderedElements == false && stickyElement != null) {
-      if (stickyElement.element.renderObject != null) {
+      if (stickyElement.element.renderObject != null &&
+          stickyElement.element.renderObject?.parent == this) {
         handler(stickyElement.element.renderObject!);
       }
     }
 
     for (var element in childManager.cachedElements) {
       var eleRenderObj = element.element.renderObject;
-      if (eleRenderObj != null) {
+      if (eleRenderObj != null && eleRenderObj.parent == this) {
         handler(eleRenderObj);
       }
     }
 
     for (var key in permanentElements.keys) {
-      if (permanentElements[key]!.element.renderObject != null) {
+      if (permanentElements[key]!.element.renderObject != null &&
+          permanentElements[key]!.element.renderObject?.parent == this) {
         handler(permanentElements[key]!.element.renderObject!);
       }
     }
@@ -984,7 +997,7 @@ class FlutterListViewRender extends RenderSliver
       // transform.setZero();
       print("--------------------------apply paint error");
     }
-    
+
     // }
   }
 
@@ -1089,7 +1102,7 @@ class FlutterListViewRender extends RenderSliver
 
   @override
   void applyPaintTransformForBoxChild(RenderBox child, Matrix4 transform) {
-    if(!child.hasSize) {
+    if (!child.hasSize) {
       return;
     }
     final bool rightWayUp = _getRightWayUp(constraints);
