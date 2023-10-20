@@ -501,9 +501,11 @@ class FlutterListViewElement extends RenderObjectElement {
       for (var i = 1; i < _renderedElements.length; i++) {
         var item = _renderedElements[i];
         item.offset += diff;
-        final itemParentData = item.element.renderObject!.parentData!
-            as SliverMultiBoxAdaptorParentData;
-        itemParentData.layoutOffset = item.offset;
+        if (item.element.renderObject != null) {
+          final itemParentData = item.element.renderObject!.parentData!
+              as SliverMultiBoxAdaptorParentData;
+          itemParentData.layoutOffset = item.offset;
+        }
       }
     }
 
@@ -521,9 +523,11 @@ class FlutterListViewElement extends RenderObjectElement {
     _totalItemHeight += diff;
     spEle.offset = offset;
     spEle.height = height;
-    final parentData = spEle.element.renderObject!.parentData!
-        as SliverMultiBoxAdaptorParentData;
-    parentData.layoutOffset = spEle.offset;
+    if (spEle.element.renderObject!.parentData != null) {
+      final parentData = spEle.element.renderObject!.parentData!
+          as SliverMultiBoxAdaptorParentData;
+      parentData.layoutOffset = spEle.offset;
+    }
     setItemHeight(getKeyByItemIndex(spEle.index), height);
     return diff;
   }
@@ -827,7 +831,10 @@ class FlutterListViewElement extends RenderObjectElement {
     Element? newElement;
     var itemKey = getKeyByItemIndex(index);
     if (permanentElements.containsKey(itemKey)) {
-      newElement = permanentElements[itemKey]!.element;
+      if (permanentElements[itemKey]!.element.renderObject != null) {
+        newElement = permanentElements[itemKey]!.element;
+      }
+
       permanentElements.remove(itemKey);
     } else {
       /// PermanentItem will not reused exist cached item.
@@ -835,11 +842,25 @@ class FlutterListViewElement extends RenderObjectElement {
       if (!isPermanentItem(itemKey) && cachedElements.isNotEmpty) {
         /// Priority reuse same key elements
         var matchedIndex = -1;
+        List<int> needRemovedIndex = [];
+
         for (var i = 0; i < cachedElements.length; i++) {
-          if (cachedElements[i].itemKey == itemKey) {
+          var item = cachedElements[i];
+          if (item.element.renderObject == null ||
+              item.element.renderObject!.parent != renderObject) {
+            needRemovedIndex.add(i);
+            if (item.itemKey == itemKey) {
+              break;
+            }
+          }
+          if (item.itemKey == itemKey) {
             matchedIndex = i;
             break;
           }
+        }
+
+        for (var index in needRemovedIndex.reversed) {
+          cachedElements.removeAt(index);
         }
 
         if (matchedIndex == -1 && cachedElements.length > 20) {
@@ -857,6 +878,11 @@ class FlutterListViewElement extends RenderObjectElement {
       }
     }
 
+    if (newElement != null &&
+        (newElement.renderObject == null ||
+            newElement.renderObject!.parent != renderObject)) {
+      return null;
+    }
     return newElement;
   }
 

@@ -2,10 +2,10 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_list_view/flutter_list_view.dart';
 import 'package:flutter/material.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'package:shimmer/shimmer.dart';
 
 import 'list_skeleton.dart';
 
@@ -87,7 +87,9 @@ class _Chat2State extends State<Chat2> {
         "When reverse the list, the item still show on top of list if the messages didn't fill full screen");
 
     initIndex = messages.length - prevTimes - 1;
-    print("--------------------$initIndex");
+    if (kDebugMode) {
+      print("--------------------$initIndex");
+    }
 
     setState(() {});
   }

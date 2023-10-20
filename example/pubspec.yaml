@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.15.0 <3.0.0"
+  sdk: ">=2.15.0 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -36,7 +36,11 @@ dependencies:
   cupertino_icons: ^1.0.2
   flutter_list_view:
     path: ../
-  flutter_easyrefresh: ^2.2.2
+  easy_refresh: ^3.3.2+1
+  pull_to_refresh: ^2.0.0
+  flutter_html: ^3.0.0-beta.2
+  shimmer: ^3.0.0
+  styled_text: ^8.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -47,10 +51,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^1.0.0
-  pull_to_refresh: ^2.0.0
-  flutter_html: ^2.2.1
-  shimmer: ^2.0.0
-  styled_text: ^5.1.0
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

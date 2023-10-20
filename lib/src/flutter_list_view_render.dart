@@ -168,9 +168,9 @@ class FlutterListViewRender extends RenderSliver
     if (childManager.renderedElements.isNotEmpty) {
       double accumulateOffset = childManager.renderedElements[0].offset;
       for (var renderedElement in childManager.renderedElements) {
-        RenderBox child = renderedElement.element.renderObject! as RenderBox;
-        child.layout(childConstraints, parentUsesSize: true);
-        var itemHeight = child.size.height;
+        var size =
+            layoutItem(renderedElement, childConstraints, parentUsesSize: true);
+        var itemHeight = size.height;
 
         childManager.updateElementPosition2(
           renderedElement,
@@ -189,9 +189,8 @@ class FlutterListViewRender extends RenderSliver
         spElement = childManager.constructPrevElement(targetStartScrollOffset);
       });
       if (spElement == null) break;
-      RenderBox child = spElement!.element.renderObject! as RenderBox;
-      child.layout(childConstraints, parentUsesSize: true);
-      var itemHeight = child.size.height;
+      var size = layoutItem(spElement, childConstraints, parentUsesSize: true);
+      var itemHeight = size.height;
       var singleCompensationScroll = childManager.updateElementPosition(
           spEle: spElement!,
           newHeight: itemHeight,
@@ -208,9 +207,8 @@ class FlutterListViewRender extends RenderSliver
       });
 
       if (spElement == null) break;
-      RenderBox child = spElement!.element.renderObject! as RenderBox;
-      child.layout(childConstraints, parentUsesSize: true);
-      var itemHeight = child.size.height;
+      var size = layoutItem(spElement, childConstraints, parentUsesSize: true);
+      var itemHeight = size.height;
       childManager.updateElementPosition(
           spEle: spElement!,
           newHeight: itemHeight,
@@ -324,9 +322,11 @@ class FlutterListViewRender extends RenderSliver
         _jumpToElement =
             childManager.constructOneIndexElement(jumpIndex, itemDy, true);
       });
-      RenderBox child = _jumpToElement!.element.renderObject! as RenderBox;
-      child.layout(childConstraints, parentUsesSize: true);
-      var itemHeight = child.size.height;
+
+      var size =
+          layoutItem(_jumpToElement, childConstraints, parentUsesSize: true);
+      var itemHeight = size.height;
+
       childManager.updateElementPosition(
           spEle: _jumpToElement!,
           newHeight: itemHeight,
@@ -386,9 +386,11 @@ class FlutterListViewRender extends RenderSliver
               chatElem = childManager.constructOneIndexElement(
                   matchedIndex, itemDy, true);
             });
-            RenderBox child = chatElem.element.renderObject! as RenderBox;
-            child.layout(childConstraints, parentUsesSize: true);
-            var itemHeight = child.size.height;
+
+            var size =
+                layoutItem(chatElem, childConstraints, parentUsesSize: true);
+            var itemHeight = size.height;
+
             childManager.updateElementPosition(
                 spEle: chatElem,
                 newHeight: itemHeight,
@@ -589,9 +591,11 @@ class FlutterListViewRender extends RenderSliver
           prevStickyElement =
               childManager.constructOneIndexElement(prevStickyIndex, 0, false);
         });
-        RenderBox child = prevStickyElement!.element.renderObject! as RenderBox;
-        child.layout(childConstraints, parentUsesSize: true);
-        var itemHeight = child.size.height;
+
+        var size = layoutItem(prevStickyElement, childConstraints,
+            parentUsesSize: true);
+        var itemHeight = size.height;
+
         childManager.updateElementPosition(
             spEle: prevStickyElement!,
             newHeight: itemHeight,
@@ -659,6 +663,37 @@ class FlutterListViewRender extends RenderSliver
         axisDirection: axisDirection);
   }
 
+  Size layoutItem(FlutterListViewRenderData? spElement, Constraints constraints,
+      {bool parentUsesSize = false}) {
+    var child = spElement?.element.renderObject as RenderBox?;
+    if (child != null && child.parent == this) {
+      child.layout(constraints, parentUsesSize: parentUsesSize);
+      return child.size;
+    } else {
+      if (spElement != null && child?.parent == this) {
+        invokeLayoutCallback((constraints) {
+          childManager.removeChildElement(spElement.element);
+        });
+      }
+    }
+    return const Size(0, 0);
+  }
+
+  void paintItem(PaintingContext context, RenderObject child, Offset offset) {
+    if (child.parent != this) {
+      return;
+    }
+    if (child is RenderBox) {
+      if (child.hasSize) {
+        context.paintChild(child, offset);
+      } else {
+        print("------------------------no size");
+      }
+    } else {
+      context.paintChild(child, offset);
+    }
+  }
+
   @override
   void paint(PaintingContext context, Offset offset) {
     paintedElements.clear();
@@ -680,74 +715,76 @@ class FlutterListViewRender extends RenderSliver
     }
     for (var renderElement in renderedElements) {
       RenderBox child = renderElement.element.renderObject as RenderBox;
-      final double mainAxisDelta = childMainAxisPosition(child);
-      final double crossAxisDelta = childCrossAxisPosition(child);
+      if (child.parent == this) {
+        final double mainAxisDelta = childMainAxisPosition(child);
+        final double crossAxisDelta = childCrossAxisPosition(child);
 
-      /// [normalChildOffset] is not care about the axis direction, it just down direction
-      var normalMainAxisUnit = const Offset(0.0, 1.0);
-      var normalCrossAxisUnit = const Offset(1.0, 0.0);
-      var normalChildOffset = Offset(
-        offset.dx +
-            normalMainAxisUnit.dx * mainAxisDelta +
-            normalCrossAxisUnit.dx * crossAxisDelta,
-        offset.dy +
-            normalMainAxisUnit.dy * mainAxisDelta +
-            normalCrossAxisUnit.dy * crossAxisDelta,
-      );
+        /// [normalChildOffset] is not care about the axis direction, it just down direction
+        var normalMainAxisUnit = const Offset(0.0, 1.0);
+        var normalCrossAxisUnit = const Offset(1.0, 0.0);
+        var normalChildOffset = Offset(
+          offset.dx +
+              normalMainAxisUnit.dx * mainAxisDelta +
+              normalCrossAxisUnit.dx * crossAxisDelta,
+          offset.dy +
+              normalMainAxisUnit.dy * mainAxisDelta +
+              normalCrossAxisUnit.dy * crossAxisDelta,
+        );
 
-      Offset childOffset = Offset(
-        growInfo.originOffset.dx +
-            growInfo.mainAxisUnit.dx * mainAxisDelta +
-            growInfo.crossAxisUnit.dx * crossAxisDelta,
-        growInfo.originOffset.dy +
-            growInfo.mainAxisUnit.dy * mainAxisDelta +
-            growInfo.crossAxisUnit.dy * crossAxisDelta,
-      );
-      if (growInfo.addExtent) {
-        childOffset += growInfo.mainAxisUnit * child.size.height;
-      }
-
-      // If the child's visible interval (mainAxisDelta, mainAxisDelta + paintExtentOf(child))
-      // does not intersect the paint extent interval (0, constraints.remainingPaintExtent), it's hidden.
-      if ((mainAxisDelta < constraints.remainingPaintExtent &&
-              mainAxisDelta + child.size.height > 0) ||
-          showAllEmenets) {
-        if (firstPainItemInViewport == null) {
-          firstPainItemInViewport = renderElement;
-          firstPainItemOffset = normalChildOffset;
-          firstPainItemOffsetY = renderElement.offset;
+        Offset childOffset = Offset(
+          growInfo.originOffset.dx +
+              growInfo.mainAxisUnit.dx * mainAxisDelta +
+              growInfo.crossAxisUnit.dx * crossAxisDelta,
+          growInfo.originOffset.dy +
+              growInfo.mainAxisUnit.dy * mainAxisDelta +
+              growInfo.crossAxisUnit.dy * crossAxisDelta,
+        );
+        if (growInfo.addExtent) {
+          childOffset += growInfo.mainAxisUnit * child.size.height;
         }
 
-        // if (childManager.firstItemAlign == FirstItemAlign.end) {
-        //   var actualScrollExtent = childManager.totalItemHeight;
+        // If the child's visible interval (mainAxisDelta, mainAxisDelta + paintExtentOf(child))
+        // does not intersect the paint extent interval (0, constraints.remainingPaintExtent), it's hidden.
+        if ((mainAxisDelta < constraints.remainingPaintExtent &&
+                mainAxisDelta + child.size.height > 0) ||
+            showAllEmenets) {
+          if (firstPainItemInViewport == null) {
+            firstPainItemInViewport = renderElement;
+            firstPainItemOffset = normalChildOffset;
+            firstPainItemOffsetY = renderElement.offset;
+          }
 
-        //   // var geometryScrollExtent = geometry!.scrollExtent;
-        //   if (actualScrollExtent < constraints.viewportMainAxisExtent) {
-        //     if (growInfo.axisDirection == AxisDirection.down) {
-        //       childOffset = Offset(
-        //           childOffset.dx,
-        //           childOffset.dy +
-        //               constraints.viewportMainAxisExtent -
-        //               actualScrollExtent);
-        //     } else {
-        //       childOffset = Offset(
-        //           childOffset.dx,
-        //           childOffset.dy +
-        //               actualScrollExtent -
-        //               constraints.viewportMainAxisExtent);
-        //     }
-        //   }
-        // }
+          // if (childManager.firstItemAlign == FirstItemAlign.end) {
+          //   var actualScrollExtent = childManager.totalItemHeight;
 
-        paintElements.add(FlutterListViewItemPosition(
-            index: renderElement.index,
-            offset: childOffset.dy,
-            height: child.size.height));
-        if (renderElement != childManager.stickyElement) {
-          context.paintChild(child, childOffset);
-          paintedElements.add(renderElement);
-          if (renderElement == _trackedNextStickyElement) {
-            nextStickyOffset = normalChildOffset;
+          //   // var geometryScrollExtent = geometry!.scrollExtent;
+          //   if (actualScrollExtent < constraints.viewportMainAxisExtent) {
+          //     if (growInfo.axisDirection == AxisDirection.down) {
+          //       childOffset = Offset(
+          //           childOffset.dx,
+          //           childOffset.dy +
+          //               constraints.viewportMainAxisExtent -
+          //               actualScrollExtent);
+          //     } else {
+          //       childOffset = Offset(
+          //           childOffset.dx,
+          //           childOffset.dy +
+          //               actualScrollExtent -
+          //               constraints.viewportMainAxisExtent);
+          //     }
+          //   }
+          // }
+
+          paintElements.add(FlutterListViewItemPosition(
+              index: renderElement.index,
+              offset: childOffset.dy,
+              height: child.size.height));
+          if (renderElement != childManager.stickyElement) {
+            paintItem(context, child, childOffset);
+            paintedElements.add(renderElement);
+            if (renderElement == _trackedNextStickyElement) {
+              nextStickyOffset = normalChildOffset;
+            }
           }
         }
       }
@@ -771,28 +808,30 @@ class FlutterListViewRender extends RenderSliver
       Offset? nextStickyOffset, FlutterListViewGrowDirectionInfo growInfo) {
     if (childManager.stickyElement != null) {
       var stickyRenderObj =
-          childManager.stickyElement!.element.renderObject! as RenderBox;
+          childManager.stickyElement!.element.renderObject as RenderBox?;
+      if (stickyRenderObj != null && stickyRenderObj.parent == this) {
+        if (nextStickyOffset == null ||
+            nextStickyOffset.dy > stickyRenderObj.size.height) {
+          var stickyOffsetDy = offset.dy;
 
-      if (nextStickyOffset == null ||
-          nextStickyOffset.dy > stickyRenderObj.size.height) {
-        var stickyOffsetDy = offset.dy;
-
-        if (growInfo.axisDirection == AxisDirection.up) {
-          stickyOffsetDy = offset.dy +
-              constraints.viewportMainAxisExtent -
-              stickyRenderObj.size.height;
+          if (growInfo.axisDirection == AxisDirection.up) {
+            stickyOffsetDy = offset.dy +
+                constraints.viewportMainAxisExtent -
+                stickyRenderObj.size.height;
+          }
+          var childOffset = Offset(offset.dx, stickyOffsetDy);
+          paintItem(context, stickyRenderObj, childOffset);
+        } else {
+          var stickyOffsetDy =
+              nextStickyOffset.dy - stickyRenderObj.size.height;
+          if (growInfo.axisDirection == AxisDirection.up) {
+            stickyOffsetDy = constraints.viewportMainAxisExtent -
+                stickyRenderObj.size.height -
+                stickyOffsetDy;
+          }
+          var childOffset = Offset(0, stickyOffsetDy);
+          paintItem(context, stickyRenderObj, childOffset);
         }
-        var childOffset = Offset(offset.dx, stickyOffsetDy);
-        context.paintChild(stickyRenderObj, childOffset);
-      } else {
-        var stickyOffsetDy = nextStickyOffset.dy - stickyRenderObj.size.height;
-        if (growInfo.axisDirection == AxisDirection.up) {
-          stickyOffsetDy = constraints.viewportMainAxisExtent -
-              stickyRenderObj.size.height -
-              stickyOffsetDy;
-        }
-        var childOffset = Offset(0, stickyOffsetDy);
-        context.paintChild(stickyRenderObj, childOffset);
       }
       paintedElements.add(childManager.stickyElement!);
     }
@@ -802,31 +841,33 @@ class FlutterListViewRender extends RenderSliver
       Offset? nextStickyOffset, FlutterListViewGrowDirectionInfo growInfo) {
     if (childManager.stickyElement != null) {
       var stickyRenderObj =
-          childManager.stickyElement!.element.renderObject! as RenderBox;
-      if (nextStickyOffset == null ||
-          nextStickyOffset.dy + _trackedNextStickyElement!.height <
+          childManager.stickyElement!.element.renderObject as RenderBox?;
+      if (stickyRenderObj != null && stickyRenderObj.parent == this) {
+        if (nextStickyOffset == null ||
+            nextStickyOffset.dy + _trackedNextStickyElement!.height <
+                constraints.viewportMainAxisExtent -
+                    stickyRenderObj.size.height) {
+          var stickyOffsetDy = offset.dy +
               constraints.viewportMainAxisExtent -
-                  stickyRenderObj.size.height) {
-        var stickyOffsetDy = offset.dy +
-            constraints.viewportMainAxisExtent -
-            stickyRenderObj.size.height;
-
-        if (growInfo.axisDirection == AxisDirection.up) {
-          stickyOffsetDy = offset.dy;
-        }
-        var childOffset = Offset(offset.dx, stickyOffsetDy);
-        context.paintChild(stickyRenderObj, childOffset);
-      } else {
-        var stickyOffsetDy =
-            _trackedNextStickyElement!.height + nextStickyOffset.dy;
-        if (growInfo.axisDirection == AxisDirection.up) {
-          stickyOffsetDy = constraints.viewportMainAxisExtent -
-              nextStickyOffset.dy -
-              _trackedNextStickyElement!.height -
               stickyRenderObj.size.height;
+
+          if (growInfo.axisDirection == AxisDirection.up) {
+            stickyOffsetDy = offset.dy;
+          }
+          var childOffset = Offset(offset.dx, stickyOffsetDy);
+          paintItem(context, stickyRenderObj, childOffset);
+        } else {
+          var stickyOffsetDy =
+              _trackedNextStickyElement!.height + nextStickyOffset.dy;
+          if (growInfo.axisDirection == AxisDirection.up) {
+            stickyOffsetDy = constraints.viewportMainAxisExtent -
+                nextStickyOffset.dy -
+                _trackedNextStickyElement!.height -
+                stickyRenderObj.size.height;
+          }
+          var childOffset = Offset(0, stickyOffsetDy);
+          paintItem(context, stickyRenderObj, childOffset);
         }
-        var childOffset = Offset(0, stickyOffsetDy);
-        context.paintChild(stickyRenderObj, childOffset);
       }
       paintedElements.add(childManager.stickyElement!);
     }
@@ -877,22 +918,30 @@ class FlutterListViewRender extends RenderSliver
     var permanentElements = childManager.permanentElements;
     var stickyIsInRenderedElements = false;
     for (var element in renderedElements) {
-      handler(element.element.renderObject!);
-      if (element == stickyElement) {
-        stickyIsInRenderedElements = true;
+      if (element.element.renderObject != null) {
+        handler(element.element.renderObject!);
+        if (element == stickyElement) {
+          stickyIsInRenderedElements = true;
+        }
       }
     }
     if (stickyIsInRenderedElements == false && stickyElement != null) {
-      handler(stickyElement.element.renderObject!);
+      if (stickyElement.element.renderObject != null) {
+        handler(stickyElement.element.renderObject!);
+      }
     }
 
     for (var element in childManager.cachedElements) {
-      var eleRenderObj = element.element.renderObject!;
-      handler(eleRenderObj);
+      var eleRenderObj = element.element.renderObject;
+      if (eleRenderObj != null) {
+        handler(eleRenderObj);
+      }
     }
 
     for (var key in permanentElements.keys) {
-      handler(permanentElements[key]!.element.renderObject!);
+      if (permanentElements[key]!.element.renderObject != null) {
+        handler(permanentElements[key]!.element.renderObject!);
+      }
     }
   }
 
@@ -929,7 +978,13 @@ class FlutterListViewRender extends RenderSliver
     //   // zero transform to prevent it from painting.
     //   transform.setZero();
     // } else {
-    applyPaintTransformForBoxChild(child, transform);
+    if (child.hasSize && child.parent == this) {
+      applyPaintTransformForBoxChild(child, transform);
+    } else {
+      // transform.setZero();
+      print("--------------------------apply paint error");
+    }
+    
     // }
   }
 
@@ -938,22 +993,26 @@ class FlutterListViewRender extends RenderSliver
       {required double mainAxisPosition, required double crossAxisPosition}) {
     final BoxHitTestResult boxResult = BoxHitTestResult.wrap(result);
     if (childManager.stickyElement != null) {
-      var child = childManager.stickyElement!.element.renderObject as RenderBox;
-      if (hitTestBoxChild(boxResult, child,
-          mainAxisPosition: mainAxisPosition,
-          crossAxisPosition: crossAxisPosition)) {
-        return true;
+      var child =
+          childManager.stickyElement!.element.renderObject as RenderBox?;
+      if (child != null) {
+        if (hitTestBoxChild(boxResult, child,
+            mainAxisPosition: mainAxisPosition,
+            crossAxisPosition: crossAxisPosition)) {
+          return true;
+        }
       }
     }
     for (var i = childManager.renderedElements.length - 1; i >= 0; i--) {
       var item = childManager.renderedElements[i];
       if (childManager.stickyElement != item) {
-        var child = item.element.renderObject as RenderBox;
-
-        if (hitTestBoxChild(boxResult, child,
-            mainAxisPosition: mainAxisPosition,
-            crossAxisPosition: crossAxisPosition)) {
-          return true;
+        var child = item.element.renderObject as RenderBox?;
+        if (child != null) {
+          if (hitTestBoxChild(boxResult, child,
+              mainAxisPosition: mainAxisPosition,
+              crossAxisPosition: crossAxisPosition)) {
+            return true;
+          }
         }
       }
     }
@@ -1030,6 +1089,9 @@ class FlutterListViewRender extends RenderSliver
 
   @override
   void applyPaintTransformForBoxChild(RenderBox child, Matrix4 transform) {
+    if(!child.hasSize) {
+      return;
+    }
     final bool rightWayUp = _getRightWayUp(constraints);
     double delta = childMainAxisPosition(child);
     final double crossAxisDelta = childCrossAxisPosition(child);
