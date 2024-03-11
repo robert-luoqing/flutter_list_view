@@ -37,9 +37,21 @@ class FlutterSliverListController {
   }
 
   void ensureVisible(int index,
-      {double offset = 0, bool offsetBasedOnBottom = false}) {
+      {double offset = 0, bool? offsetBasedOnBottom}) {
     if (_listView != null) {
       _listView!.ensureVisible(index, offset, offsetBasedOnBottom);
+    }
+  }
+
+  void pageDown() {
+    if (_listView != null) {
+      _listView!.pageDown();
+    }
+  }
+
+  void pageUp() {
+    if (_listView != null) {
+      _listView!.pageUp();
     }
   }
 

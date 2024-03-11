@@ -150,7 +150,7 @@ class FlutterListViewElement extends RenderObjectElement {
 
   void jumpToIndex(int index, double offset, bool basedOnBottom) {
     assert(index >= 0 && index < childCount,
-        "Index should be >=0 and  <= child count");
+        "Index should be >=0 and  < child count");
     indexShoudBeJumpTo = index;
     indexShoudBeJumpOffset = offset;
     offsetBasedOnBottom = basedOnBottom;
@@ -201,9 +201,10 @@ class FlutterListViewElement extends RenderObjectElement {
     jumpToIndex(index, offset, basedOnBottom);
   }
 
+  /*
   void ensureVisible(int index, double offset, bool basedOnBottom) {
     assert(index >= 0 && index < childCount,
-        "Index should be >=0 and  <= child count");
+        "Index should be >=0 and  < child count");
     // paintedElements
     var flutterListViewRender = renderObject as FlutterListViewRender;
     var viewportHeight = flutterListViewRender.currentViewportHeight ?? 0;
@@ -216,6 +217,79 @@ class FlutterListViewElement extends RenderObjectElement {
     }
 
     jumpToIndex(index, offset, basedOnBottom);
+  }
+  */
+
+  List<dynamic> getVisibleIndexData() {
+    // paintedElements
+    int last = 0;
+    int first = 0;
+    bool b1 = false;
+    double totalHeight = 0;
+    var flutterListViewRender = renderObject as FlutterListViewRender;
+    for (var item in flutterListViewRender.paintedElements) {
+      totalHeight += item.height;
+      if (!b1) {
+        first = last = item.index;
+        b1 = true;
+      }
+      else {
+        if (item.index < first) first = item.index;
+        if (item.index > last) last = item.index;
+      }
+    }
+    return [first, last, totalHeight];
+  }
+
+  void ensureVisible(int index, double offset, bool? basedOnBottom) {
+    assert(index >= 0 && index < childCount,
+          "Index should be >=0 and  < child count");
+    var sdata = getVisibleIndexData();
+    int first = sdata[0];
+    int last = sdata[1];
+    if (index <= first) {
+      jumpToIndex(index, 0, basedOnBottom ?? false);
+    } else if (index >= last) {
+      jumpToIndex(index, 0, basedOnBottom ?? true);
+    }
+  }
+
+  void pageDown() {
+    var flutterListViewRender = renderObject as FlutterListViewRender;
+    var viewportHeight = flutterListViewRender.currentViewportHeight ?? 0;
+    var sdata = getVisibleIndexData();
+    int first = sdata[0];
+    int last = sdata[1];
+    double totalHeight = sdata[2];
+    if (totalHeight <= viewportHeight) {
+      // perfect alignment
+      if (last + 1 < childCount) {
+        jumpToIndex(last + 1, 0, false);
+        return;
+      }
+      jumpToIndex(childCount, 0, true);
+      return;
+    }
+    jumpToIndex(last, 0, false);
+  }
+
+  void pageUp() {
+    var flutterListViewRender = renderObject as FlutterListViewRender;
+    var viewportHeight = flutterListViewRender.currentViewportHeight ?? 0;
+    var sdata = getVisibleIndexData();
+    int first = sdata[0];
+    int last = sdata[1];
+    double totalHeight = sdata[2];
+    if (totalHeight <= viewportHeight) {
+      // perfect alignment
+      if (first <= 1) {
+        jumpToIndex(0, 0, false);
+        return;
+      }
+      jumpToIndex(first - 1, 0, true);
+      return;
+    }
+    jumpToIndex(first, 0, true);
   }
 
   /// [notifyPositionChanged] is used to send ScrollNotification
