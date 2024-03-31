@@ -111,6 +111,11 @@ class _HomePageState extends State<HomePage> {
                   Navigator.of(context).pushNamed("/testDismissableItem");
                 },
                 child: const Text("test DismissableItem")),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed("/timerListView");
+                },
+                child: const Text("test Timer Cell")),
           ],
         ),
       ),

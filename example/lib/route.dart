@@ -1,4 +1,5 @@
 import 'package:flutter_list_view_example/dismissable_item_test.dart';
+import 'package:flutter_list_view_example/timer_list_view.dart';
 
 import 'chat.dart';
 import 'chat2.dart';
@@ -24,8 +25,8 @@ class SectionViewRoute {
   static const String initialRoute = "/";
   static final Map<String, WidgetBuilder> routes = {
     "/": (context) => Stack(
-          children: [
-            const HomePage(
+          children: const [
+            HomePage(
               title: "Home",
             ),
           ],
@@ -50,5 +51,6 @@ class SectionViewRoute {
     "/testKeepAliveIssue": (context) => const TestKeepAliveIssue(),
     "/testCase2": (context) => const TestCase2(),
     "/testDismissableItem": (context) => const DismissibleItemTest(),
+    "/timerListView": (context) => const TimerListView()
   };
 }

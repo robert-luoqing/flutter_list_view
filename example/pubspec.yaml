@@ -41,6 +41,7 @@ dependencies:
   flutter_html: ^3.0.0-beta.2
   shimmer: ^3.0.0
   styled_text: ^7.0.0
+  timer_count_down: ^2.2.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

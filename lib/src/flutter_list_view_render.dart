@@ -255,6 +255,14 @@ class FlutterListViewRender extends RenderSliver
         });
         childManager.cachedElements.clear();
       }
+    } else {
+      if (childManager.cachedElements.isNotEmpty) {
+        invokeLayoutCallback((constraints) {
+          for (var item in childManager.cachedElements) {
+            layoutItem(item, childConstraints, parentUsesSize: true);
+          }
+        });
+      }
     }
 
     var extentResults = _calcPaintExtentAndCacehExtent();
@@ -986,7 +994,7 @@ class FlutterListViewRender extends RenderSliver
     // } else {
     if (child.hasSize && child.parent == this) {
       applyPaintTransformForBoxChild(child, transform);
-    } 
+    }
   }
 
   @override
