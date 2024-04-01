@@ -78,6 +78,9 @@
 ## 1.1.22
 * Fix the error when item is Dismissible widget
 
+## 1.1.24
+* Fixed _debugSubtreeRelayoutRootAlreadyMarkedNeedsLayout()': is not true error when disableCacheItems is false
+
 ## TODO
 * Add horizontal scroll support
 * Add creating items when flutter list view created
