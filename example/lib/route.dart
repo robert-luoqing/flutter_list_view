@@ -4,6 +4,7 @@ import 'package:flutter_list_view_example/timer_list_view.dart';
 import 'chat.dart';
 import 'chat2.dart';
 import 'chat3.dart';
+import 'expend_reverse.dart';
 import 'flutter_list_view_performance.dart';
 import 'init_jump.dart';
 import 'init_jump_after_loaddata.dart';
@@ -51,6 +52,7 @@ class SectionViewRoute {
     "/testKeepAliveIssue": (context) => const TestKeepAliveIssue(),
     "/testCase2": (context) => const TestCase2(),
     "/testDismissableItem": (context) => const DismissibleItemTest(),
-    "/timerListView": (context) => const TimerListView()
+    "/timerListView": (context) => const TimerListView(),
+    "/chat4": (context) => const Chat4()
   };
 }

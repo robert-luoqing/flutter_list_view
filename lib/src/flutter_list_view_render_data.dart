@@ -15,4 +15,5 @@ class FlutterListViewRenderData {
   double height;
   String itemKey;
   bool isSticky;
+  double? prevRenderHeight;
 }

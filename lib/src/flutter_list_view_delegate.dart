@@ -39,7 +39,8 @@ class FlutterListViewDelegate extends SliverChildDelegate {
       this.initOffsetBasedOnBottom = false,
       this.onIsPermanent,
       this.isSupressElementGenerate = false,
-      this.disableCacheItems = false});
+      this.disableCacheItems = false,
+      this.expandDirectToDownWhenFirstItemAlignToEnd = false});
 
   /// When childCount from 0 to non-zore, the [initIndex] will effect,
   /// When initIndex changed, if child count is not 0, it also effect
@@ -72,6 +73,9 @@ class FlutterListViewDelegate extends SliverChildDelegate {
   /// When [keepPosition] is true and scrolloffset>=keepPositionOffset, the keep position will enable
   final bool keepPosition;
   final double keepPositionOffset;
+
+  /// [expandDirectToDownWhenFirstItemAlignToEnd] is true, the item which in viewpoint expand. when first item align to end. the expand direct is to down.
+  final bool expandDirectToDownWhenFirstItemAlignToEnd;
 
   /// Query the item is sticky to header.
   /// [stickyAtTailer] is mean sticky from bottom to top, in normal sticky item will show on top, but if it is true, it mean the sticky will show on bottom

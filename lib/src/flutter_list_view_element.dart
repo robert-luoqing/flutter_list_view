@@ -232,8 +232,7 @@ class FlutterListViewElement extends RenderObjectElement {
       if (!b1) {
         first = last = item.index;
         b1 = true;
-      }
-      else {
+      } else {
         if (item.index < first) first = item.index;
         if (item.index > last) last = item.index;
       }
@@ -243,7 +242,7 @@ class FlutterListViewElement extends RenderObjectElement {
 
   void ensureVisible(int index, double offset, bool? basedOnBottom) {
     assert(index >= 0 && index < childCount,
-          "Index should be >=0 and  < child count");
+        "Index should be >=0 and  < child count");
     var sdata = getVisibleIndexData();
     int first = sdata[0];
     int last = sdata[1];
@@ -308,7 +307,7 @@ class FlutterListViewElement extends RenderObjectElement {
       } catch (e, s) {
         if (kDebugMode) {
           print(
-            "error in notifyPositionChanged in flutter list view element, $e, $s");
+              "error in notifyPositionChanged in flutter list view element, $e, $s");
         }
       }
     });
@@ -363,6 +362,14 @@ class FlutterListViewElement extends RenderObjectElement {
       return flutterListDelegate.keepPositionOffset;
     }
     return 0;
+  }
+
+  bool get expandDirectToDownWhenFirstItemAlignToEnd {
+    if (widget.delegate is FlutterListViewDelegate) {
+      var flutterListDelegate = widget.delegate as FlutterListViewDelegate;
+      return flutterListDelegate.expandDirectToDownWhenFirstItemAlignToEnd;
+    }
+    return false;
   }
 
   /// [_itemHeights]维护着已经layout的高度, 如果_itemHeights有，则取这个高度
