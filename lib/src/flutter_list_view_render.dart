@@ -279,15 +279,21 @@ class FlutterListViewRender extends RenderSliver
       }
     }
 
+    // 没有destroy的item必须要layout，否则会报错
+    for (var key in childManager.permanentElements.keys) {
+      layoutItem(childManager.permanentElements[key], childConstraints,
+          parentUsesSize: true);
+    }
+
     // 以下是检查是否viewpoint的size发生了变化
     double differIncreaseHeight = 0;
     if (childManager.firstItemAlign == FirstItemAlign.end &&
         childManager.expandDirectToDownWhenFirstItemAlignToEnd == true &&
         _scrollOffsetDifferFromLast != null &&
-        _scrollOffsetDifferFromLast!.abs() < 1) {
+        _scrollOffsetDifferFromLast!.abs() < 0.5) {
       differIncreaseHeight = detectRenderItemsSizeChange();
     }
-    if (differIncreaseHeight > 1) {
+    if (differIncreaseHeight > 0.5) {
       geometry = SliverGeometry(
           scrollExtent: _getScrollExtent(),
           hasVisualOverflow: false,
@@ -363,18 +369,24 @@ class FlutterListViewRender extends RenderSliver
         if ((mainAxisDelta < constraints.remainingPaintExtent &&
                 mainAxisDelta + child.size.height > 0) ||
             showAllEmenets) {
-          if (paintedElements.length > i &&
-              (paintedElements[i] == renderElement) &&
-              renderElement.prevRenderHeight != null &&
-              renderElement != childManager.stickyElement) {
-            differIncreaseHeight +=
-                child.size.height - renderElement.prevRenderHeight!;
-            // 位置调整好后，把prevRenderHeight改成新的size, avoid死循环
-            renderElement.prevRenderHeight = child.size.height;
-            if (paintedElements[i] == lastPainItemInViewport) {
-              return differIncreaseHeight;
+          if (paintedElements.length > i) {
+            var oldPaintedElement = paintedElements[i];
+            var newPaintedElement = renderElement;
+            if ((oldPaintedElement.itemKey == newPaintedElement.itemKey) &&
+                oldPaintedElement.prevRenderHeight != null &&
+                newPaintedElement != childManager.stickyElement) {
+              differIncreaseHeight +=
+                  child.size.height - oldPaintedElement.prevRenderHeight!;
+              // 位置调整好后，把prevRenderHeight改成新的size, avoid死循环
+              newPaintedElement.prevRenderHeight = child.size.height;
+              if (newPaintedElement.itemKey ==
+                  lastPainItemInViewport?.itemKey) {
+                return differIncreaseHeight;
+              }
+              i++;
+            } else {
+              return 0;
             }
-            i++;
           } else {
             return 0;
           }

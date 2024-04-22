@@ -84,6 +84,9 @@
 ## 1.1.25
 * Add expandDirectToDownWhenFirstItemAlignToEnd property
 
+## 1.1.26
+* Fixed layout error when onIsPermanent: (keyOrIndex) => true
+
 ## TODO
 * Add horizontal scroll support
 * Add creating items when flutter list view created

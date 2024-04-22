@@ -13,6 +13,19 @@ Enhance list view to support scroll to index, jump to index, header sticky, enab
 7. To save performance, flutter list_view always reuses the rendered item.
 8. Support to keep specifying items without reusing and disposing of them once the item is created.
 
+> [!NOTE]  
+> The list item will be reuse when disableCacheItems=false and the invisible item will destroy. This mean, one item may be create or destroy multiple times. So The Item widget must not have any state, as it may lead to unforeseeable issues. If you want work same with list_view which item didn't destroy after create, please put onIsPermanent: (keyOrIndex) => true to FlutterListViewDelegate
+```
+FlutterListViewDelegate(
+    (BuildContext context, int index) => _renderItem(index),
+    childCount: messages.length,
+    onItemKey: (index) => messages[index].id.toString(),
+    // ...
+    disableCacheItems: true,
+    onIsPermanent: (keyOrIndex) => true,
+```
+
+
 ## Screen
 |  |  |
 | :-----:| :----: |
