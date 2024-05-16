@@ -126,6 +126,11 @@ class _HomePageState extends State<HomePage> {
                   Navigator.of(context).pushNamed("/dynamicContent");
                 },
                 child: const Text("test dynamicContent")),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed("/test1");
+                },
+                child: const Text("test")),
             const Padding(padding: EdgeInsets.all(20.0))
           ],
         ),

@@ -17,6 +17,7 @@ import 'pull_to_refresh_list.dart';
 import 'separatedList.dart';
 import 'sticky_header.dart';
 import 'sticky_header_refresh.dart';
+import 'test1.dart';
 import 'test_case2.dart';
 import 'test_keep_alive_issue.dart';
 import 'testlist.dart';
@@ -55,6 +56,7 @@ class SectionViewRoute {
     "/testDismissableItem": (context) => const DismissibleItemTest(),
     "/timerListView": (context) => const TimerListView(),
     "/chat4": (context) => const Chat4(),
-    "/dynamicContent": (context) => const DynamicContent()
+    "/dynamicContent": (context) => const DynamicContent(),
+    "/test1": (context) => const Test1()
   };
 }

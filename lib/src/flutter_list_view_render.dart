@@ -317,6 +317,15 @@ class FlutterListViewRender extends RenderSliver
       }
       if (scrollOffset + compensationScroll < 0) {
         compensationScroll = -scrollOffset;
+      } else if (childManager.totalItemHeight -
+              scrollOffset -
+              compensationScroll <
+          viewportHeight) {
+        compensationScroll =
+            childManager.totalItemHeight - viewportHeight - scrollOffset;
+        if (scrollOffset + compensationScroll < 0) {
+          compensationScroll = 0;
+        }
       } else if (scrollOffset + compensationScroll >
           childManager.totalItemHeight) {
         compensationScroll = childManager.totalItemHeight - scrollOffset;
