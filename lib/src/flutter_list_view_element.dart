@@ -266,7 +266,9 @@ class FlutterListViewElement extends RenderObjectElement {
         jumpToIndex(last + 1, 0, false);
         return;
       }
-      jumpToIndex(childCount, 0, true);
+      if (childCount > 0) {
+        jumpToIndex(childCount - 1, 0, true);
+      }
       return;
     }
     jumpToIndex(last, 0, false);

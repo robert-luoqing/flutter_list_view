@@ -90,6 +90,9 @@
 ## 1.1.27
 * Fixed flick when jump to last index
 
+## 1.1.28
+* Fixed page down bug
+
 ## TODO
 * Add horizontal scroll support
 * Add creating items when flutter list view created
