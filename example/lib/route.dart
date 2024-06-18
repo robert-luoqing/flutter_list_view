@@ -1,5 +1,6 @@
 import 'package:flutter_list_view_example/dismissable_item_test.dart';
 import 'package:flutter_list_view_example/dynamic_content.dart';
+import 'package:flutter_list_view_example/init_jump2.dart';
 import 'package:flutter_list_view_example/timer_list_view.dart';
 
 import 'chat.dart';
@@ -57,6 +58,7 @@ class SectionViewRoute {
     "/timerListView": (context) => const TimerListView(),
     "/chat4": (context) => const Chat4(),
     "/dynamicContent": (context) => const DynamicContent(),
-    "/test1": (context) => const Test1()
+    "/test1": (context) => const Test1(),
+    "/init_jump2": (context) => const InitJump2Page()
   };
 }

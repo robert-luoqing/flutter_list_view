@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_list_view/flutter_list_view.dart';
 import 'package:flutter/material.dart';
 
@@ -36,8 +38,10 @@ class _InitJumpPageState extends State<InitJumpPage> {
                 delegate: FlutterListViewDelegate(
                     (BuildContext context, int index) => Container(
                           color: Colors.white,
-                          child:
-                              ListTile(title: Text('List Item ${data[index]}')),
+                          child: SizedBox(
+                              height: Random().nextInt(50) + 60,
+                              child: ListTile(
+                                  title: Text('List Item ${data[index]}'))),
                         ),
                     childCount: data.length,
                     initIndex: 50,
