@@ -1,62 +1,59 @@
-import 'dart:math';
-
-import 'package:flutter_list_view/flutter_list_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_list_view/flutter_list_view.dart';
 
-class InitJump2Page extends StatefulWidget {
-  const InitJump2Page({Key? key}) : super(key: key);
-
-  @override
-  State<InitJump2Page> createState() => _InitJump2PageState();
-}
-
-class _InitJump2PageState extends State<InitJump2Page> {
-  List<int> chatList = [];
-  FlutterListViewController chatListScrollController =
-      FlutterListViewController();
+class TestApiWidget extends HookWidget {
+  TestApiWidget({super.key});
 
   @override
-  initState() {
-    for (var i = 0; i < 1000; i++) {
-      chatList.add(i);
+  Widget build(final BuildContext context) {
+    final chatListScrollController = useMemoized(FlutterListViewController.new);
+    final dataList = useState(List.generate(50, (final index) => index + 1));
+
+    void scrollToEdgeListener() {
+      if (chatListScrollController.position.atEdge) {
+        final isTop = chatListScrollController.position.pixels == 0;
+        if (isTop) {
+          /// At the top
+        } else {
+          /// At the bottom
+          dataList.value = List.generate(
+              dataList.value.length + 50, (final index) => index + 1);
+          // Jump to 50.
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+            chatListScrollController.sliverController.jumpToIndex(50);
+          });
+        }
+      }
     }
-    super.initState();
-  }
 
-  @override
-  dispose() {
-    super.dispose();
-  }
+    useEffect(
+      () {
+        if (dataList.value.isNotEmpty) {
+          chatListScrollController.addListener(scrollToEdgeListener);
+        }
+        return () {
+          chatListScrollController.removeListener(scrollToEdgeListener);
+        };
+      },
+      [dataList.value.isNotEmpty],
+    );
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Init Index Test"),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-              child: FlutterListView(
-            controller: chatListScrollController,
-            shrinkWrap: true,
-            delegate: FlutterListViewDelegate(
-              (final BuildContext _, final int index) {
-                final item = chatList[index];
-                return Container(
-                  color: Colors.white,
-                  child: SizedBox(
-                      height: Random().nextInt(50) + 60,
-                      child: ListTile(title: Text('List Item $item'))),
-                );
-              },
-              onItemKey: (final index) => index.toString(),
-              childCount: chatList.length,
-              initIndex: 50,
-              disableCacheItems: true,
-            ),
-          )),
-        ],
+    return FlutterListView(
+      controller: chatListScrollController,
+      shrinkWrap: true,
+      delegate: FlutterListViewDelegate(
+        (final BuildContext _, final int index) {
+          final item = dataList.value[index];
+          return Container(
+            margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+            child: Text(item.toString()),
+          );
+        },
+        onItemKey: (final index) => dataList.value[index].toString(),
+        childCount: dataList.value.length,
+        initIndex: 10,
+        disableCacheItems: true,
       ),
     );
   }

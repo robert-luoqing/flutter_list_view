@@ -28,8 +28,8 @@ import 'package:flutter/widgets.dart';
 class SectionViewRoute {
   static const String initialRoute = "/";
   static final Map<String, WidgetBuilder> routes = {
-    "/": (context) => Stack(
-          children: const [
+    "/": (context) => const Stack(
+          children: [
             HomePage(
               title: "Home",
             ),
@@ -59,6 +59,6 @@ class SectionViewRoute {
     "/chat4": (context) => const Chat4(),
     "/dynamicContent": (context) => const DynamicContent(),
     "/test1": (context) => const Test1(),
-    "/init_jump2": (context) => const InitJump2Page()
+    "/init_jump2": (context) => TestApiWidget()
   };
 }
