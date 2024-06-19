@@ -1,6 +1,7 @@
 import 'package:flutter_list_view_example/dismissable_item_test.dart';
 import 'package:flutter_list_view_example/dynamic_content.dart';
 import 'package:flutter_list_view_example/init_jump2.dart';
+import 'package:flutter_list_view_example/simple_chat.dart';
 import 'package:flutter_list_view_example/timer_list_view.dart';
 
 import 'chat.dart';
@@ -43,6 +44,7 @@ class SectionViewRoute {
     "/chat": (context) => const Chat(),
     "/chat2": (context) => const Chat2(),
     "/chat3": (context) => const Chat3(),
+    "/simple_chat": (context) => const SimpleChat(),
     "/initJumpPage": (context) => const InitJumpPage(),
     "/initJumpAfterLoadDataPage": (context) =>
         const InitJumpAfterLoadDataPage(),

@@ -37,6 +37,11 @@ class _HomePageState extends State<HomePage> {
                 child: const Text("Sticky Header With Pull to Refresh")),
             ElevatedButton(
                 onPressed: () {
+                  Navigator.of(context).pushNamed("/simple_chat");
+                },
+                child: const Text("Simple Chat")),
+            ElevatedButton(
+                onPressed: () {
                   Navigator.of(context).pushNamed("/chat");
                 },
                 child: const Text("Chat")),
