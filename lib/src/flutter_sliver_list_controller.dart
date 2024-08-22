@@ -36,6 +36,13 @@ class FlutterSliverListController {
     }
   }
 
+  double getScrollOffsetByIndex(int index) {
+    if (_listView != null) {
+      return _listView!.getScrollOffsetByIndex(index);
+    }
+    return 0;
+  }
+
   void ensureVisible(int index,
       {double offset = 0, bool? offsetBasedOnBottom}) {
     if (_listView != null) {
