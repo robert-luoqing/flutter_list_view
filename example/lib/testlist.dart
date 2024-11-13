@@ -1,3 +1,4 @@
+import 'package:flutter/rendering.dart';
 import 'package:flutter_list_view/flutter_list_view.dart';
 import 'package:flutter/material.dart';
 
@@ -9,6 +10,8 @@ class TestListPage extends StatefulWidget {
 }
 
 class _TestListPageState extends State<TestListPage> {
+  final GlobalKey flutterListViewSliverKey = GlobalKey();
+
   ScrollController scrollController = ScrollController();
   FlutterSliverListController flutterListViewController =
       FlutterSliverListController();
@@ -57,6 +60,21 @@ class _TestListPageState extends State<TestListPage> {
     );
   }
 
+  void getSliverPositionInScrollView() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final sliverContext = flutterListViewSliverKey.currentContext;
+      if (sliverContext != null) {
+        final renderSliver = sliverContext.findRenderObject() as RenderObject;
+        final viewport = RenderAbstractViewport.of(renderSliver);
+
+        // 获取 Sliver 相对于 CustomScrollView 的偏移量
+        final double offset =
+            viewport.getOffsetToReveal(renderSliver, 0.0).offset;
+        print("Sliver position relative to CustomScrollView: $offset");
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,10 +93,11 @@ class _TestListPageState extends State<TestListPage> {
                 TextField(controller: textController),
                 ElevatedButton(
                     onPressed: () {
+                      getSliverPositionInScrollView();
                       flutterListViewController.jumpToIndex(
                           int.parse(textController.text),
-                          offset: 100,
-                          offsetBasedOnBottom: true);
+                          offset: 0,
+                          offsetBasedOnBottom: false);
                     },
                     child: const Text("Jump")),
                 ElevatedButton(
@@ -148,8 +167,9 @@ class _TestListPageState extends State<TestListPage> {
                   reverse: reverse,
                   cacheExtent: 100,
                   slivers: [
-                    // buildSliverList(15),
+                    buildSliverList(15),
                     FlutterSliverList(
+                        key: flutterListViewSliverKey,
                         controller: flutterListViewController,
                         delegate: FlutterListViewDelegate(
                             (BuildContext context, int index) {
@@ -169,7 +189,7 @@ class _TestListPageState extends State<TestListPage> {
                             keepPosition: keepPosition,
                             keepPositionOffset: 80,
                             firstItemAlign: firstItemAlign)),
-                    // buildSliverList(50),
+                    buildSliverList(50),
                   ],
                 ),
               ),

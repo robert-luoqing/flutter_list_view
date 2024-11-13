@@ -1,7 +1,9 @@
 import 'package:flutter_list_view_example/dismissable_item_test.dart';
 import 'package:flutter_list_view_example/dynamic_content.dart';
 import 'package:flutter_list_view_example/init_jump2.dart';
+import 'package:flutter_list_view_example/mulitple_slivers.dart';
 import 'package:flutter_list_view_example/simple_chat.dart';
+import 'package:flutter_list_view_example/sticky_header2.dart';
 import 'package:flutter_list_view_example/timer_list_view.dart';
 
 import 'chat.dart';
@@ -39,6 +41,7 @@ class SectionViewRoute {
     "/testListPage": (context) => const TestListPage(),
     "/pullToRefreshList": (context) => const PullToRefreshList(),
     "/stickyHeader": (context) => const StickyHeader(),
+    "/stickyHeader2": (context) => const StickyHeader2(),
     "/stickyHeaderWithRefresh": (context) => const StickyHeaderWithRefresh(),
     "/jumpToIndexPage": (context) => const JumpToIndexPage(),
     "/chat": (context) => const Chat(),
@@ -61,6 +64,7 @@ class SectionViewRoute {
     "/chat4": (context) => const Chat4(),
     "/dynamicContent": (context) => const DynamicContent(),
     "/test1": (context) => const Test1(),
-    "/init_jump2": (context) => TestApiWidget()
+    "/init_jump2": (context) => TestApiWidget(),
+    "/multiple_slivers": (context) => MultipleSlivers()
   };
 }

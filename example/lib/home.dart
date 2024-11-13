@@ -32,6 +32,11 @@ class _HomePageState extends State<HomePage> {
                 child: const Text("Sticky Header In List")),
             ElevatedButton(
                 onPressed: () {
+                  Navigator.of(context).pushNamed("/stickyHeader2");
+                },
+                child: const Text("Sticky Header 2")),
+            ElevatedButton(
+                onPressed: () {
                   Navigator.of(context).pushNamed("/stickyHeaderWithRefresh");
                 },
                 child: const Text("Sticky Header With Pull to Refresh")),
@@ -141,6 +146,11 @@ class _HomePageState extends State<HomePage> {
                   Navigator.of(context).pushNamed("/test1");
                 },
                 child: const Text("test")),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed("/multiple_slivers");
+                },
+                child: const Text("Multiple slivers")),
             const Padding(padding: EdgeInsets.all(20.0))
           ],
         ),
