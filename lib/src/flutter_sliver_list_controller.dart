@@ -66,4 +66,8 @@ class FlutterSliverListController {
   void dispose() {
     stickyIndex.dispose();
   }
+
+  List<dynamic>? getVisibleIndexData() {
+    return _listView?.getVisibleIndexData();
+  }
 }
