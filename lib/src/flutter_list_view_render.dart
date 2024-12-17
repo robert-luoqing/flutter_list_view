@@ -312,7 +312,7 @@ class FlutterListViewRender extends RenderSliver
       var currentOffset = scrollOffset + compensationScroll;
       var targetOffsetFromTop = elementOffset - currentOffset;
       var distance = targetOffsetFromTop - _jumpDistanceFromTop;
-      if (distance != 0.0) {
+      if (distance < 0.0) {
         compensationScroll += distance;
       }
       if (scrollOffset + compensationScroll < 0) {
