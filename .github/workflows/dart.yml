@@ -23,7 +23,8 @@ jobs:
         java-version: '11'
     - uses: subosito/flutter-action@v2
       with:
-        flutter-version: '2.8.1'
+        channel: stable
+        flutter-version: 3.19.0
     - run: flutter pub get
     - run: flutter test
 #     - run: flutter build apk
