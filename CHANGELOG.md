@@ -93,6 +93,9 @@
 ## 1.1.28
 * Fixed page down bug
 
+## 1.1.29
+* expose getVisibleIndexData method in controller
+
 ## TODO
 * Add horizontal scroll support
 * Add creating items when flutter list view created
