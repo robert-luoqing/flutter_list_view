@@ -7,6 +7,8 @@ import 'dart:math' as math;
 class FlutterListView extends CustomScrollView {
   final SliverChildDelegate delegate;
   final FlutterListViewController? _controller;
+  final List<Widget> headerSlivers;
+  final List<Widget> tailSlivers;
 
   const FlutterListView({
     Key? key,
@@ -27,6 +29,8 @@ class FlutterListView extends CustomScrollView {
         ScrollViewKeyboardDismissBehavior.manual,
     String? restorationId,
     Clip clipBehavior = Clip.hardEdge,
+    this.headerSlivers = const <Widget>[],
+    this.tailSlivers = const <Widget>[],
   })  : _controller = controller,
         super(
             key: key,
@@ -67,6 +71,8 @@ class FlutterListView extends CustomScrollView {
         ScrollViewKeyboardDismissBehavior.manual,
     String? restorationId,
     Clip clipBehavior = Clip.hardEdge,
+    this.headerSlivers = const <Widget>[],
+    this.tailSlivers = const <Widget>[],
   })  : _controller = controller,
         delegate = SliverChildBuilderDelegate(
           itemBuilder,
@@ -113,6 +119,8 @@ class FlutterListView extends CustomScrollView {
         ScrollViewKeyboardDismissBehavior.manual,
     String? restorationId,
     Clip clipBehavior = Clip.hardEdge,
+    this.headerSlivers = const <Widget>[],
+    this.tailSlivers = const <Widget>[],
   })  : _controller = controller,
         delegate = SliverChildBuilderDelegate(
           (BuildContext context, int index) {
@@ -159,10 +167,12 @@ class FlutterListView extends CustomScrollView {
   @override
   List<Widget> buildSlivers(BuildContext context) {
     return [
+      ...headerSlivers,
       FlutterSliverList(
         delegate: delegate,
         controller: _controller?.sliverController,
-      )
+      ),
+      ...tailSlivers
     ];
   }
 
